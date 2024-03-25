@@ -11,30 +11,66 @@ letter [A-Za-z]
 digit [0-9]
 
 %%
-"import"|"class"|"static"|"implements"|"default"|"case"|"break"|"for"|"return"|"do"|"while"|"if"|"else"|"switch" { printf("\nKeyword : %s", yytext); }
-"private"|"protected"|"public" { printf("\nAccess specifier : %s", yytext); }
-"java\.".*  { printf("\nImported Class : %s", yytext); }
-"System" { printf("\nClass : %s", yytext); }
-"out"|"in" { printf("\nObject : %s", yytext); }
-"{"|"}"|"["|"]"|"("|")" { printf("\nParenthesis : %s", yytext); }
-"int"|"char"|"float"|"double"|"String"|"boolean"|"void" { printf("\nData Type : %s", yytext); }
-"." { printf("\nDot Operator : %s", yytext); }
-"//".* { printf("\nSingle Line comment : %s", yytext); }
-"/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+"/" { printf("\nMulti Line Comment : %s", yytext); }
-{digit}*\.{digit}+ { printf("\nFloat Constant : %s", yytext); }
-{digit}+     { printf("\nInteger Constant : %s", yytext); }
-\".*\" { printf("\nString Constant : %s", yytext); }
-'.'  { printf("\nCharacter Constant : %s", yytext); }
-{letter}({letter}|{digit})* { printf("\nIdentifier : %s", yytext); }
-{letter}({letter}|{digit})*\([^)]*\) { printf("\nFunction : %s", yytext); }
-[,;] { printf("\nDelimiter : %s", yytext); }
-[\t\n]          ;
-"=" { printf("\nAssignment Operator : %s", yytext); }
-"-"|"+"|"*"|"/"|"%" { printf("\nArithmetic Operator : %s", yytext); }
-"<"|">"|"<="|">="|"=="|"!=" { printf("\nRelational Operator : %s", yytext); }
-"||"|"&&" { printf("\nLogical Operator : %s", yytext); }
+"import"    {return IMPORT; }
+"class"     { return CLASS; }
+"static"    { return STATIC; }
+"implements" { return IMPLEMENTS; }
+"default"   { return DEFAULT; }
+"case"      {  return CASE; }
+"break"     { return BREAK; }
+"for"       { return FOR; }
+"return"    { return RETURN; }
+"do"        { return DO; }
+"while"     { return WHILE; }
+"if"        { return IF; }
+"else"      { return ELSE; }
+"switch"    {return SWITCH; }
+"private"   { return PRIVATE; }
+"protected" { return PROTECTED; }
+"public"    { return PUBLIC; }
+"java"\.    {return JAVA_IMPORT; }
+"System"    { return SYSTEM; }
+"out"       { return OUT; }
+"in"        { return IN; }
+"int"       { return INT; }
+"float"      { return FLOAT; }
+"void"     {return VOID;} // Fixed typo here
+"String"   {return STRING;} // Fixed typo here
+"{"       { return LBRACE; }
+"}"       { return RBRACE; }
+"["       { return LBRACKET; }
+"]"       { return RBRACKET; }
+"("       { return LPAREN; }
+")"       { return RPAREN; }
+"."       { return DOT; }
+";"       { return SEMICOLON; }
+","       { return COMMA; }
+"="       { return ASSIGN; }
+"-"       { return MINUS; }
+"+"       { return PLUS; }
+"*"       { return MULTIPLY; }
+"/"       { return DIVIDE; }
+"%"       { return MODULO; }
+"<"       { return LESS_THAN; }
+"<="      { return LESS_EQUAL; }
+">"       { return GREATER_THAN; }
+">="      { return GREATER_EQUAL; }
+"=="      { return EQUALS; }
+"!="      { return NOT_EQUALS; }
+"&&"      { return AND; }
+"||"      { return OR; }
+"!"       { return NOT; }
+{digit}+\.{digit}+   { return FLOAT_CONST; }
+{digit}+             { return INT_CONST; }
+\"([^"\\]|\\.)*\"    { return STRING_CONST; }
+'.'                  { return CHAR_CONST; }
+{letter}({letter}|{digit})* { return IDENTIFIER; }
+\/\/.*               { /* ignore single line comments */ }
+\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/  { /* ignore multi-line comments */ }
+[\t]              ; /* ignore whitespace */
+.                     { return DOT;}
+\n                     { line_number++; return '\n';}
 %%
-
 int main() {
     FILE *fp;
     fp = fopen("input.java", "r");
