@@ -1,16 +1,43 @@
 %{
- #define yywrap() 1
+#include "y.tab.h"
 #include <stdio.h>
-%}
+#include <string.h>
+int line_number = 1;
+// Structure to represent symbol table entry
+struct symbol_entry {
+    char name[50];
+    int type;
+    int token;
+    // Add more attributes as needed
+};
 
-%{
-#define YY_DECL int yylex()
+// Symbol table declaration
+struct symbol_entry symbol_table[100];
+int symbol_count = 0; // Counter to track the number of entries in symbol table
+
+// Function to search for an identifier in the symbol table
+int search_symbol_table(char *name) {
+    for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(symbol_table[i].name, name) == 0)
+            return symbol_table[i].token; // Return token if found
+    }
+    return -1; // Return -1 if not found
+}
+
+
+// Function to add an entry to the symbol table
+void add_to_symbol_table(char *name, int type) {
+    strcpy(symbol_table[symbol_count].name, name);
+    symbol_table[symbol_count].type = type;
+    symbol_count++;
+}
 %}
 
 letter [A-Za-z]
 digit [0-9]
 
 %%
+
 "import"    {return IMPORT; }
 "class"     { return CLASS; }
 "static"    { return STATIC; }
@@ -28,14 +55,14 @@ digit [0-9]
 "private"   { return PRIVATE; }
 "protected" { return PROTECTED; }
 "public"    { return PUBLIC; }
-"java"\.    {return JAVA_IMPORT; }
+"java\.".*     {return JAVA_IMPORT; }
 "System"    { return SYSTEM; }
 "out"       { return OUT; }
 "in"        { return IN; }
 "int"       { return INT; }
 "float"      { return FLOAT; }
-"void"     {return VOID;} // Fixed typo here
-"String"   {return STRING;} // Fixed typo here
+"void"     {return VOID;} 
+"String"   {return STRING;} 
 "{"       { return LBRACE; }
 "}"       { return RBRACE; }
 "["       { return LBRACKET; }
@@ -63,19 +90,27 @@ digit [0-9]
 {digit}+\.{digit}+   { return FLOAT_CONST; }
 {digit}+             { return INT_CONST; }
 \"([^"\\]|\\.)*\"    { return STRING_CONST; }
-'.'                  { return CHAR_CONST; }
-{letter}({letter}|{digit})* { return IDENTIFIER; }
+\'.\'                  { return CHAR_CONST; }
+{letter}({letter}|{digit})* {
+    // Check if identifier already exists in the symbol table
+    int index = search_symbol_table(yytext);
+    if (index == -1) {
+        add_to_symbol_table(yytext, IDENTIFIER);
+        return IDENTIFIER; // Return IDENTIFIER token
+    }
+     else {
+        return symbol_table[index].type; // Return type of the identifier
+    }
+}
 \/\/.*               { /* ignore single line comments */ }
 \/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/  { /* ignore multi-line comments */ }
 [\t]              ; /* ignore whitespace */
-.                     { return DOT;}
-\n                     { line_number++; return '\n';}
+ .                 { return DOT;}
+ "\n"                  { line_number++; return '\n';}
+
 %%
-int main() {
-    FILE *fp;
-    fp = fopen("input.java", "r");
-    yyin = fp;
-    yylex();
-    fclose(fp);
-    return 0;
+
+int yywrap() {
+    // Always indicate to Flex that there is no additional input
+    return 1;
 }
