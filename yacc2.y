@@ -1,259 +1,205 @@
-%left '+' '-'
-%left '*' '/'
-%left NEG
-%left '<' 
-%left '>' 
-
-%left EQ NEQ
-%left AND
-%left OR
-
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 extern int line_number;
 extern int yylex();
 extern FILE *yyin;
 void yyerror(const char *s);
+
+// Define YYSTYPE struct for semantic values
+typedef struct {
+    char* strval;
+    float floatval;
+    int intval;
+    char charval;
+} YYSTYPE;
+
+#define YYSTYPE_IS_DECLARED
 %}
 
-// Token definitions
-%token  IMPORT CLASS STATIC IMPLEMENTS DEFAULT CASE BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC JAVA_IMPORT SYSTEM OUT IN INT FLOAT VOID STRING CONTINUE
-%token  LBRACE RBRACE LBRACKET RBRACKET LPAREN RPAREN DOT SEMICOLON COLON COMMA ASSIGN MINUS PLUS MULTIPLY DIVIDE MODULO LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUALS NOT_EQUALS  NOT
-%token  FLOAT_CONST INT_CONST STRING_CONST CHAR_CONST IDENTIFIER
+%union {
+    char* strval;
+    float floatval;
+    int intval;
+    char charval;
+}
+
+%token <strval> IDENTIFIER STRING_CONST
+%token <floatval> FLOAT_CONST
+%token <intval> INT_CONST
+%token <charval> CHAR_CONST
+
+%token  CLASS STATIC  IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS 
+%token  SEMICOLON COMMA ASSIGN MINUS NEWLINE PLUS MULTIPLY DIVIDE MODULO DOT RBRACKET LBRACKET IN OUT SYSTEM JAVA_IMPORT CASE DEFAULT
+%token  LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUALS NOT_EQUALS AND OR NOT    
+%token  LBRACE RBRACE LPAREN RPAREN 
+%token  INT FLOAT VOID STRING
+
+%left OR
+%left AND
+%left EQUALS NOT_EQUALS
+%left LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL
+%left PLUS MINUS
+%left MULTIPLY DIVIDE MODULO
+%right NOT
 
 %%
 
-program : compilation_unit   { printf("Parsing completed successfully!\n"); return 0;}
+program : statement_list { printf("Parsing completed !\n");}
+        | /* empty */
         ;
 
-compilation_unit : type_declaration_list
-                 ;
-
-type_declaration_list : /* empty */
-                       | type_declaration_list type_declaration
-                       ;
-
-type_declaration : class_declaration
-                 
-                 ;
-
-class_declaration : modifier CLASS IDENTIFIER class_body 
-                   ;
-
-
-class_body : LBRACE class_body_declarations RBRACE
-           ;
-
-class_body_declarations : /* empty */
-                        | class_body_declarations class_body_declaration
-                        ;
-
-class_body_declaration : field_declaration
-                       | method_declaration
-                       ;
-
-field_declaration : data_type variable_declarators SEMICOLON
-                   ;
-
-variable_declarators : variable_declarator
-                     | variable_declarators COMMA variable_declarator
-                     ;
-
-variable_declarator : IDENTIFIER
-                    | IDENTIFIER ASSIGN variable_initializer
-                    ;
-
-variable_initializer : expression
-                     ;
-
-method_declaration : method_header method_body
-                    ;
-
-method_header : modifier data_type IDENTIFIER LPAREN parameter_list RPAREN
-              | data_type IDENTIFIER LPAREN parameter_list RPAREN
-              
-              ;
-
-modifier : PUBLIC
-         | PRIVATE
-         | PROTECTED
-         | STATIC
-         ;
-
-parameter_list : /* empty */
-               | formal_parameter
-               | parameter_list COMMA formal_parameter
+statement_list :statement
+               |statement_list statement
+               |function_decl
+               |class_declaration
+               |statement_list class_declaration
+               |class_declaration statement_list
+               
+               
                ;
-
-formal_parameter : data_type IDENTIFIER
+class_declaration: class_modifier CLASS IDENTIFIER LBRACE class_body RBRACE
                  ;
+class_modifier: PUBLIC
+               |STATIC
+               |PROTECTED
+               |
+               ;
+class_body:statement_list
+           |statement function_decl
+           |function_decl statement_list
+           |
+          ;
+function_decl: type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             ;     
+parm: type_specifier IDENTIFIER
+      | 
+      ;
+func_body: statement_list
+           |
+           ;
+statement :type_specifier expression SEMICOLON
+          | expression SEMICOLON
+          | declaration SEMICOLON
+          | selection_statement
+          | iteration_statement
+          | jump_statement
+          |out_put_statment
+          |IDENTIFIER ASSIGN expression SEMICOLON
+         
 
-method_body : block
+          ;
+out_put_statment:SYSTEM DOT 'println' LPAREN STRING_CONST RPAREN SEMICOLON
+                 |SYSTEM DOT 'println' LPAREN STRING_CONST LPAREN SEMICOLON
+                 |SYSTEM DOT 'println' LPAREN expression LPAREN SEMICOLON
+                 |SYSTEM DOT 'println' LPAREN STRING_CONST PLUS expression LPAREN SEMICOLON
+                 |SYSTEM DOT 'println' LPAREN expression PLUS STRING_CONST LPAREN SEMICOLON
+                 |SYSTEM DOT 'println' LPAREN  LPAREN SEMICOLON
+
+declaration : type_specifier var_declarations
+            
+             
             ;
 
-block : LBRACE block_statements RBRACE
-      ;
-
-block_statements : /* empty */
-                 | block_statements block_statement
+var_declarations : var_declaration
+                 | var_declarations COMMA var_declaration
                  ;
 
-block_statement : local_variable_declaration_statement
-                | statement
+var_declaration :  IDENTIFIER
+                |  IDENTIFIER ASSIGN expression
+                
                 ;
 
-local_variable_declaration_statement : data_type variable_declarators SEMICOLON
-data_type: INT
-           |VOID
-           |STRING
-           |FLOAT
-           |IDENTIFIER;
-
-                                      ;
-
-statement : expression_statement
-          | if_statement
-          | while_statement
-          | for_statement
-          | return_statement
-          ;
-
-expression_statement : SEMICOLON
-                     | expression SEMICOLON
-                     ;
-
-if_statement : IF LPAREN expression RPAREN statement
-             | IF LPAREN expression RPAREN statement ELSE statement
-             ;
-
-while_statement : WHILE LPAREN expression RPAREN statement
-                ;
-
-for_statement : FOR LPAREN for_init SEMICOLON expression SEMICOLON for_update RPAREN statement
-              ;
-
-for_init : /* empty */
-         | local_variable_declaration_statement
-         | expression_statement
-         ;
-
-for_update : /* empty */
-           | expression_statement
-           ;
-
-return_statement : RETURN expression SEMICOLON
-                 | RETURN SEMICOLON
-                 ;
-
-expression : assignment_expression
-           ;
-
-assignment_expression : conditional_expression
-                       | unary_expression ASSIGN assignment_expression
-                       ;
-
-conditional_expression : conditional_or_expression
-                        | conditional_or_expression '?' expression ':' conditional_expression
-                        ;
-
-conditional_or_expression : conditional_and_expression
-                           | conditional_or_expression OR conditional_and_expression
-                           ;
-
-conditional_and_expression : inclusive_or_expression
-                            | conditional_and_expression AND inclusive_or_expression
-                            ;
-
-inclusive_or_expression : exclusive_or_expression
-                        | inclusive_or_expression '|' exclusive_or_expression
-                        ;
-
-exclusive_or_expression : and_expression
-                        | exclusive_or_expression '^' and_expression
-                        ;
-
-and_expression : equality_expression
-               | and_expression '&' equality_expression
+type_specifier : INT
+               | FLOAT
+               | VOID
+               | STRING
+               | IDENTIFIER
+                
                ;
 
-equality_expression : relational_expression
-                    | equality_expression EQUALS relational_expression
-                    | equality_expression NOT_EQUALS relational_expression
+selection_statement : IF LPAREN expression RPAREN statement
+                    | IF LPAREN expression RPAREN statement ELSE statement
+                    |IF LPAREN expression RPAREN LBRACE statement RBRACE ELSE statement
+                    |IF LPAREN expression RPAREN LBRACE statement RBRACE LBRACE statement RBRACE
+                    | SWITCH LPAREN expression RPAREN statement
+                    |IF LPAREN expression RPAREN LBRACE statement RBRACE
                     ;
 
-relational_expression : additive_expression
-                       | relational_expression LESS_THAN additive_expression
-                       | relational_expression LESS_EQUAL additive_expression
-                       | relational_expression GREATER_THAN additive_expression
-                       | relational_expression GREATER_EQUAL additive_expression
-                       ;
+iteration_statement : WHILE LPAREN expression RPAREN LBRACE iteration_statement_body RBRACE
+                    | DO LBRACE iteration_statement_body RBRACE WHILE LPAREN expression RPAREN SEMICOLON 
+                    | FOR LPAREN declaration SEMICOLON expression SEMICOLON expression RPAREN LBRACE iteration_statement_body RBRACE
+                    | FOR LPAREN  SEMICOLON SEMICOLON SEMICOLON RPAREN RPAREN LBRACE iteration_statement_body RBRACE
+                    | FOR LPAREN declaration SEMICOLON SEMICOLON RPAREN RPAREN LBRACE iteration_statement_body RBRACE
+                    ;
+             
+iteration_statement_body:statement_list
+                         |
 
-additive_expression : multiplicative_expression
-                     | additive_expression PLUS multiplicative_expression
-                     | additive_expression MINUS multiplicative_expression
-                     ;
+jump_statement : RETURN expression SEMICOLON
+               | BREAK SEMICOLON
+               ;
 
-multiplicative_expression : unary_expression
-                           | multiplicative_expression MULTIPLY unary_expression
-                           | multiplicative_expression DIVIDE unary_expression
-                           | multiplicative_expression MODULO unary_expression
-                           ;
-
-unary_expression : postfix_expression
-                 | MINUS unary_expression
-                 | PLUS unary_expression
-                 | NOT unary_expression
-                 ;
-
-postfix_expression : primary_expression
-                   | postfix_expression LPAREN argument_list RPAREN
-                   | postfix_expression DOT IDENTIFIER
-                   | postfix_expression DOT IDENTIFIER LPAREN argument_list RPAREN
-                   | postfix_expression LBRACKET expression RBRACKET
-                  
-                   ;
+expression : expression PLUS expression
+           | expression MINUS expression
+           | expression MULTIPLY expression
+           | expression DIVIDE expression
+           | expression MODULO expression
+           | expression LESS_THAN expression
+           | expression LESS_EQUAL expression
+           | expression GREATER_THAN expression
+           | expression GREATER_EQUAL expression
+           | expression EQUALS expression
+           | expression NOT_EQUALS expression
+           | expression AND expression
+           | expression OR expression
+           | NOT expression
+           | LPAREN expression RPAREN
+           | primary_expression
+           | expression PLUS PLUS
+           | expression MINUS MINUS
+           |MINUS expression
+           |PLUS PLUS expression
+           
+           ;
 
 primary_expression : IDENTIFIER
-                   | INT_CONST
-                   | FLOAT_CONST
-                   | STRING_CONST
-                   | CHAR_CONST
-                   | LPAREN expression RPAREN
-                   ;
-
-argument_list : /* empty */
-              | expression
-              | argument_list COMMA expression
-              ;
-
-class_instance_creation_expression : IDENTIFIER LPAREN argument_list RPAREN
-                                   ;
-
+                    | FLOAT_CONST
+                    | INT_CONST
+                    | STRING_CONST
+                    | CHAR_CONST
+                    
+                    ;
 
 %%
 
 void yyerror(const char *s) {
     fprintf(stderr, "Syntax error at line %d: %s\n", line_number, s);
+    exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <input_file>\n", argv[0]);
+    if (argc < 2) {
+        printf("Usage: %s <input_file>\n", argv[0]);
         return 1;
     }
 
-    yyin = fopen(argv[1], "r");
-    if (!yyin) {
-        fprintf(stderr, "Error: Cannot open input file %s\n", argv[
-  1]);
+    FILE *input_file = fopen(argv[1], "r");
+    if (!input_file) {
+        printf("Error opening input file.\n");
         return 1;
     }
 
-    int parse_result = yyparse();
-    if (parse_result == 0) {
-        printf("Compilation completed without syntax errors.\n");
+    yyin = input_file;
+
+   if (yyparse() == 0) {
+        printf("Your input java code is correct\n");
     }
 
-    fclose(yyin);
+    fclose(input_file);
+
     return 0;
 }
+

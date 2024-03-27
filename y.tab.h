@@ -39,133 +39,140 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     NEG = 258,
-     NEQ = 259,
-     EQ = 260,
-     AND = 261,
-     OR = 262,
-     IMPORT = 263,
-     CLASS = 264,
-     STATIC = 265,
-     IMPLEMENTS = 266,
-     DEFAULT = 267,
-     CASE = 268,
-     BREAK = 269,
-     FOR = 270,
-     RETURN = 271,
-     DO = 272,
-     WHILE = 273,
-     IF = 274,
-     ELSE = 275,
-     SWITCH = 276,
-     PRIVATE = 277,
-     PROTECTED = 278,
-     PUBLIC = 279,
-     JAVA_IMPORT = 280,
-     SYSTEM = 281,
-     OUT = 282,
-     IN = 283,
-     INT = 284,
-     FLOAT = 285,
-     VOID = 286,
-     STRING = 287,
-     CONTINUE = 288,
-     LBRACE = 289,
-     RBRACE = 290,
-     LBRACKET = 291,
-     RBRACKET = 292,
-     LPAREN = 293,
-     RPAREN = 294,
-     DOT = 295,
-     SEMICOLON = 296,
-     COLON = 297,
-     COMMA = 298,
-     ASSIGN = 299,
-     MINUS = 300,
-     PLUS = 301,
-     MULTIPLY = 302,
-     DIVIDE = 303,
-     MODULO = 304,
-     LESS_THAN = 305,
-     LESS_EQUAL = 306,
-     GREATER_THAN = 307,
-     GREATER_EQUAL = 308,
-     EQUALS = 309,
-     NOT_EQUALS = 310,
-     NOT = 311,
-     FLOAT_CONST = 312,
-     INT_CONST = 313,
-     STRING_CONST = 314,
-     CHAR_CONST = 315,
-     IDENTIFIER = 316
+     IDENTIFIER = 258,
+     STRING_CONST = 259,
+     FLOAT_CONST = 260,
+     INT_CONST = 261,
+     CHAR_CONST = 262,
+     CLASS = 263,
+     STATIC = 264,
+     IMPORT = 265,
+     BREAK = 266,
+     FOR = 267,
+     RETURN = 268,
+     DO = 269,
+     WHILE = 270,
+     IF = 271,
+     ELSE = 272,
+     SWITCH = 273,
+     PRIVATE = 274,
+     PROTECTED = 275,
+     PUBLIC = 276,
+     IMPLEMENTS = 277,
+     SEMICOLON = 278,
+     COMMA = 279,
+     ASSIGN = 280,
+     MINUS = 281,
+     NEWLINE = 282,
+     PLUS = 283,
+     MULTIPLY = 284,
+     DIVIDE = 285,
+     MODULO = 286,
+     DOT = 287,
+     RBRACKET = 288,
+     LBRACKET = 289,
+     IN = 290,
+     OUT = 291,
+     SYSTEM = 292,
+     JAVA_IMPORT = 293,
+     CASE = 294,
+     DEFAULT = 295,
+     LESS_THAN = 296,
+     LESS_EQUAL = 297,
+     GREATER_THAN = 298,
+     GREATER_EQUAL = 299,
+     EQUALS = 300,
+     NOT_EQUALS = 301,
+     AND = 302,
+     OR = 303,
+     NOT = 304,
+     LBRACE = 305,
+     RBRACE = 306,
+     LPAREN = 307,
+     RPAREN = 308,
+     INT = 309,
+     FLOAT = 310,
+     VOID = 311,
+     STRING = 312
    };
 #endif
 /* Tokens.  */
-#define NEG 258
-#define NEQ 259
-#define EQ 260
-#define AND 261
-#define OR 262
-#define IMPORT 263
-#define CLASS 264
-#define STATIC 265
-#define IMPLEMENTS 266
-#define DEFAULT 267
-#define CASE 268
-#define BREAK 269
-#define FOR 270
-#define RETURN 271
-#define DO 272
-#define WHILE 273
-#define IF 274
-#define ELSE 275
-#define SWITCH 276
-#define PRIVATE 277
-#define PROTECTED 278
-#define PUBLIC 279
-#define JAVA_IMPORT 280
-#define SYSTEM 281
-#define OUT 282
-#define IN 283
-#define INT 284
-#define FLOAT 285
-#define VOID 286
-#define STRING 287
-#define CONTINUE 288
-#define LBRACE 289
-#define RBRACE 290
-#define LBRACKET 291
-#define RBRACKET 292
-#define LPAREN 293
-#define RPAREN 294
-#define DOT 295
-#define SEMICOLON 296
-#define COLON 297
-#define COMMA 298
-#define ASSIGN 299
-#define MINUS 300
-#define PLUS 301
-#define MULTIPLY 302
-#define DIVIDE 303
-#define MODULO 304
-#define LESS_THAN 305
-#define LESS_EQUAL 306
-#define GREATER_THAN 307
-#define GREATER_EQUAL 308
-#define EQUALS 309
-#define NOT_EQUALS 310
-#define NOT 311
-#define FLOAT_CONST 312
-#define INT_CONST 313
-#define STRING_CONST 314
-#define CHAR_CONST 315
-#define IDENTIFIER 316
+#define IDENTIFIER 258
+#define STRING_CONST 259
+#define FLOAT_CONST 260
+#define INT_CONST 261
+#define CHAR_CONST 262
+#define CLASS 263
+#define STATIC 264
+#define IMPORT 265
+#define BREAK 266
+#define FOR 267
+#define RETURN 268
+#define DO 269
+#define WHILE 270
+#define IF 271
+#define ELSE 272
+#define SWITCH 273
+#define PRIVATE 274
+#define PROTECTED 275
+#define PUBLIC 276
+#define IMPLEMENTS 277
+#define SEMICOLON 278
+#define COMMA 279
+#define ASSIGN 280
+#define MINUS 281
+#define NEWLINE 282
+#define PLUS 283
+#define MULTIPLY 284
+#define DIVIDE 285
+#define MODULO 286
+#define DOT 287
+#define RBRACKET 288
+#define LBRACKET 289
+#define IN 290
+#define OUT 291
+#define SYSTEM 292
+#define JAVA_IMPORT 293
+#define CASE 294
+#define DEFAULT 295
+#define LESS_THAN 296
+#define LESS_EQUAL 297
+#define GREATER_THAN 298
+#define GREATER_EQUAL 299
+#define EQUALS 300
+#define NOT_EQUALS 301
+#define AND 302
+#define OR 303
+#define NOT 304
+#define LBRACE 305
+#define RBRACE 306
+#define LPAREN 307
+#define RPAREN 308
+#define INT 309
+#define FLOAT 310
+#define VOID 311
+#define STRING 312
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+typedef union YYSTYPE
+{
+
+/* Line 1676 of yacc.c  */
+#line 22 "yacc2.y"
+
+    char* strval;
+    float floatval;
+    int intval;
+    char charval;
+
+
+
+/* Line 1676 of yacc.c  */
+#line 175 "y.tab.h"
+} YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
