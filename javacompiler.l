@@ -3,20 +3,11 @@
 #include <string.h>
 int line_number = 1;
 
-const char* token_strings[] = {
-    "IDENTIFIER", "STRING_CONST", "FLOAT_CONST", "INT_CONST", "CHAR_CONST", 
-    "CLASS", "STATIC", "IMPORT", "BREAK", "FOR", "RETURN", "DO", "WHILE", "IF", "ELSE",
-    "SWITCH", "PRIVATE", "PROTECTED", "PUBLIC", "IMPLEMENTS", "SYSTEM", "SEMICOLON", "COMMA",
-    "ASSIGN", "MINUS", "PLUS", "MULTIPLY", "DIVIDE", "MODULO", "DOT", "LBRACKET", "RBRACKET",
-    "LPAREN", "RPAREN", "LBRACE", "RBRACE", "LESS_THAN", "LESS_EQUAL", "GREATER_THAN", "GREATER_EQUAL",
-    "EQUALS", "NOT_EQUALS", "AND", "OR", "NOT", "INT", "FLOAT", "VOID", "STRING"
-    
-};
+ 
 struct symbol_entry {
     char name[50];
-    char type_string[50]; 
-    int type;
-    int token;
+    char data_type[20];
+     int token_type;
     // Add more attributes as needed
 };
 
@@ -25,31 +16,49 @@ struct symbol_entry symbol_table[100];
 int symbol_count = 0; // Counter to track the number of entries in symbol table
 
 // Function to search for an identifier in the symbol table
+char* token_strings[] = {
+    "IDENTIFIER", "STRING_CONST", "FLOAT_CONST", "INT_CONST", "CHAR_CONST", 
+    "CLASS", "STATIC", "IMPORT", "BREAK", "FOR", "RETURN", "DO", "WHILE", "IF", "ELSE",
+    "SWITCH", "PRIVATE", "PROTECTED", "PUBLIC", "IMPLEMENTS", "SYSTEM", "SEMICOLON", "COMMA",
+    "ASSIGN", "MINUS", "PLUS", "MULTIPLY", "DIVIDE", "MODULO", "DOT", "LBRACKET", "RBRACKET",
+    "LPAREN", "RPAREN", "LBRACE", "RBRACE", "LESS_THAN", "LESS_EQUAL", "GREATER_THAN", "GREATER_EQUAL",
+    "EQUALS", "NOT_EQUALS", "AND", "OR", "NOT", "INT", "FLOAT", "VOID", "STRING"
+    
+};
 int search_symbol_table(char *name) {
     for (int i = 0; i < symbol_count; i++) {
         if (strcmp(symbol_table[i].name, name) == 0)
-            return symbol_table[i].token; // Return token if found
+            return symbol_table[i].token_type; // Return token if found
     }
     return -1; // Return -1 if not found
 }
 
 
 // Function to add an entry to the symbol table
-void add_to_symbol_table(char *name, int type) {
+void add_to_symbol_table(char *name, int token) {
     strcpy(symbol_table[symbol_count].name, name);
-    symbol_table[symbol_count].type = type;
+    symbol_table[symbol_count].token_type = token;
 
     symbol_count++;
 }
 void displaySymbolTable() {
     printf("Symbol Table:\n");
-    printf("--------------\n");
-    printf("%-20s %-10s\n", "Name", "Type");
-    printf("--------------\n");
+    printf("------------------------------------------------\n");
+     printf("%-20s | %-15s | %-10s\n", "Name", "Data Type", "Token Type");
+     printf("--------------\n");
     for (int i = 0; i < symbol_count; i++) {
-        printf("%-20s %-10d\n", symbol_table[i].name, symbol_table[i].type);
+     printf("%-20s | %-15s | %-10d\n", symbol_table[i].name, symbol_table[i].data_type, symbol_table[i].token_type);
+
     }
-    printf("--------------\n");
+    printf("------------------------------------------------\n");
+}
+// Function to search for an identifier in the symbol table and return its token name
+char* search_symbol_tableByname(char *name) {
+    for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(symbol_table[i].name, name) == 0)
+            return token_strings[symbol_table[i].token_type]; // Return token name if found
+    }
+    return "UNKNOWN"; // Return "UNKNOWN" if not found
 }
 
 
@@ -57,7 +66,7 @@ void displaySymbolTable() {
 
 %%
 
-"class"                 { return CLASS; }
+"class"                 { strcpy(symbol_table[symbol_count].data_type, "class");return CLASS; }
 "static"                { return STATIC; }
 "import"                { return IMPORT; }
 "break"                 { return BREAK; }
@@ -97,10 +106,10 @@ void displaySymbolTable() {
 "&&"                    { return AND; }
 "||"                    { return OR; }
 "!"                     { return NOT; }
-"int"                   { return INT; }
-"float"                 { return FLOAT; }
-"void"                  { return VOID; }
-"string"                { return STRING; }
+"int"                   { strcpy(symbol_table[symbol_count].data_type, "int"); return INT; }
+"float"                 { strcpy(symbol_table[symbol_count].data_type, "float"); return FLOAT; }
+"void"                  { strcpy(symbol_table[symbol_count].data_type, "void"); return VOID; }
+"String"                {strcpy(symbol_table[symbol_count].data_type, "String");  return STRING; }
 [a-zA-Z_][a-zA-Z0-9_]*  {  yylval.strval = strdup(yytext); 
                         int index = search_symbol_table(yytext);
                          if (index == -1) {
@@ -108,7 +117,7 @@ void displaySymbolTable() {
                        return IDENTIFIER; // Return IDENTIFIER token
                         }
                      else {
-                        return symbol_table[index].type; // Return type of the identifier
+                        return symbol_table[index].token_type; // Return type of the identifier
                         }
                        
                          }

@@ -161,7 +161,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 22 "yacc2.y"
+#line 25 "yacc2.y"
 
     char* strval;
     float floatval;

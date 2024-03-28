@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+extern int search_symbol_table(char *name);
+extern void add_to_symbol_table(char *name, int type);
+extern void displaySymbolTable();
 
 extern int line_number;
 extern int yylex();
@@ -60,19 +63,21 @@ statement_list :statement
                
                
                ;
-class_declaration: class_modifier CLASS IDENTIFIER LBRACE class_body RBRACE
+class_declaration: PUBLIC CLASS IDENTIFIER LBRACE class_body RBRACE
+                 | CLASS IDENTIFIER LBRACE class_body RBRACE
                  ;
-class_modifier: PUBLIC
-               |STATIC
-               |PROTECTED
-               |
-               ;
-class_body:statement_list
-           |statement function_decl
+
+class_body:statement_list 
+           |statement_list function_decl
            |function_decl statement_list
            |
           ;
-function_decl: type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+
+                   ;
+function_decl:modifier type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |modifier VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
              ;     
 parm: type_specifier IDENTIFIER
       | 
@@ -80,15 +85,37 @@ parm: type_specifier IDENTIFIER
 func_body: statement_list
            |
            ;
-statement :type_specifier expression SEMICOLON
-          | expression SEMICOLON
+modifier: PUBLIC  
+         |PRIVATE 
+         |PROTECTED
+         |STATIC
+            
+        ; 
+assignment : IDENTIFIER ASSIGN expression {  char *identifier = $1;
+                                         // Check if the identifier exists in the symbol table
+                                        int token = search_symbol_table(identifier);
+                                       if (token != -1) {
+                                          // Identifier exists, perform the assignment
+                                       printf("Assignment to identifier '%s' is allowed.\n", identifier);
+                                            }
+                                             else {
+                                              // Identifier does not exist, print an error message
+                                         printf("Error: Identifier '%s' not declared.\n", identifier);
+                                         yyerror("Assignment not allowed");
+                                            // You can also choose to exit parsing or handle the error differently
+                                           } }
+           ;
+statement :type_specifier expression SEMICOLON     
           | declaration SEMICOLON
+          | assignment SEMICOLON { printf("Assignment statement parsed.\n"); }
           | selection_statement
           | iteration_statement
           | jump_statement
           |out_put_statment
-          |IDENTIFIER ASSIGN expression SEMICOLON
-         
+          |increament_decreament SEMICOLON
+          
+increament_decreament:IDENTIFIER PLUS PLUS 
+                      |IDENTIFIER MINUS MINUS            
 
           ;
 out_put_statment:SYSTEM DOT 'println' LPAREN STRING_CONST RPAREN SEMICOLON
@@ -98,7 +125,8 @@ out_put_statment:SYSTEM DOT 'println' LPAREN STRING_CONST RPAREN SEMICOLON
                  |SYSTEM DOT 'println' LPAREN expression PLUS STRING_CONST LPAREN SEMICOLON
                  |SYSTEM DOT 'println' LPAREN  LPAREN SEMICOLON
 
-declaration : type_specifier var_declarations
+declaration : type_specifier var_declarations   
+             
             
              
             ;
@@ -114,11 +142,9 @@ var_declaration :  IDENTIFIER
 
 type_specifier : INT
                | FLOAT
-               | VOID
                | STRING
-               | IDENTIFIER
-                
-               ;
+              
+                ;
 
 selection_statement : IF LPAREN expression RPAREN statement
                     | IF LPAREN expression RPAREN statement ELSE statement
