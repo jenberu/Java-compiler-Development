@@ -53,21 +53,28 @@ void displaySymbolTable() {
     printf("------------------------------------------------\n");
 }
 // Function to search for an identifier in the symbol table and return its token name
-char* search_symbol_tableByname(char *name) {
+char* get_data_type(char* token_name) {
     for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(symbol_table[i].name, name) == 0)
-            return token_strings[symbol_table[i].token_type]; // Return token name if found
+        if (strcmp(symbol_table[i].name, token_name) == 0) {
+            if (strlen(symbol_table[i].data_type) > 0) {
+                return symbol_table[i].data_type;
+            } else {
+                return "UNKNOWN"; // Or return NULL or an empty string
+            }
+        }
     }
-    return "UNKNOWN"; // Return "UNKNOWN" if not found
+    return "UNKNOWN"; // Return if token name is not found in symbol table
 }
+
 
 
 %}
 
 %%
-
+"main"                  { return MAIN; }
 "class"                 { strcpy(symbol_table[symbol_count].data_type, "class");return CLASS; }
 "static"                { return STATIC; }
+"extends"                { return EXTENDS; }
 "import"                { return IMPORT; }
 "break"                 { return BREAK; }
 "for"                   { return FOR; }
@@ -78,10 +85,14 @@ char* search_symbol_tableByname(char *name) {
 "else"                  { return ELSE; }
 "switch"                { return SWITCH; }
 "private"               { return PRIVATE; }
-"protected"             { return PROTECTED; }
-"public"                { return PUBLIC; }
-"implements"            { return IMPLEMENTS; }
-"System"                {return SYSTEM; }
+"protected"              { return PROTECTED; }
+"public"                 { return PUBLIC; }
+"implements"             { return IMPLEMENTS; }
+"System"                 {return SYSTEM; }
+"println"                {return PRINTLN;}
+"out"                    {return OUT;}
+"this"                   {return THIS;}
+"new"                   {return NEW;}
 ";"                     { return SEMICOLON; }
 ","                     { return COMMA; }
 "="                     { return ASSIGN; }
@@ -90,7 +101,7 @@ char* search_symbol_tableByname(char *name) {
 "*"                     { return MULTIPLY; }
 "/"                     { return DIVIDE; }
 "%"                     { return MODULO; }
-"."                    { return DOT; }
+"."                      { return DOT; }
 "["                     { return LBRACKET; }
 "]"                     { return RBRACKET; }
 "("                     { return LPAREN; }
@@ -106,10 +117,10 @@ char* search_symbol_tableByname(char *name) {
 "&&"                    { return AND; }
 "||"                    { return OR; }
 "!"                     { return NOT; }
-"int"                   { strcpy(symbol_table[symbol_count].data_type, "int"); return INT; }
-"float"                 { strcpy(symbol_table[symbol_count].data_type, "float"); return FLOAT; }
-"void"                  { strcpy(symbol_table[symbol_count].data_type, "void"); return VOID; }
-"String"                {strcpy(symbol_table[symbol_count].data_type, "String");  return STRING; }
+"int"                   {  return INT; }
+"float"                 {  return FLOAT; }
+"void"                  {  return VOID; }
+"String"                {  return STRING; }
 [a-zA-Z_][a-zA-Z0-9_]*  {  yylval.strval = strdup(yytext); 
                         int index = search_symbol_table(yytext);
                          if (index == -1) {
@@ -117,12 +128,13 @@ char* search_symbol_tableByname(char *name) {
                        return IDENTIFIER; // Return IDENTIFIER token
                         }
                      else {
-                        return symbol_table[index].token_type; // Return type of the identifier
+                        return index; // Return type of the identifier
                         }
                        
                          }
 
-
+"//".*                  ;
+"/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+"/"    ;
 [0-9]+\.[0-9]+          { yylval.floatval = atof(yytext); return FLOAT_CONST; }
 [0-9]+                  { yylval.intval = atoi(yytext); return INT_CONST; }
 \"[^"]*\"               { yylval.strval = strdup(yytext); return STRING_CONST; }
@@ -133,7 +145,8 @@ char* search_symbol_tableByname(char *name) {
 %%
 
 int yywrap() {
-     displaySymbolTable(); // Call displaySymbolTable at the end of processing
+     
+   // Call displaySymbolTable at the end of processing
 
     return 1; // Indicate that there are no more input files to process
 }

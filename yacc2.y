@@ -5,6 +5,16 @@
 extern int search_symbol_table(char *name);
 extern void add_to_symbol_table(char *name, int type);
 extern void displaySymbolTable();
+extern char* get_data_type(char* token_name);
+extern void displaySymbolTable();
+extern struct symbol_entry {
+    char name[50];
+    char data_type[20];
+    int token_type;
+    // Add more attributes as needed
+} symbol_table[100];
+
+extern int symbol_count;
 
 extern int line_number;
 extern int yylex();
@@ -34,10 +44,10 @@ typedef struct {
 %token <intval> INT_CONST
 %token <charval> CHAR_CONST
 
-%token  CLASS STATIC  IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS 
-%token  SEMICOLON COMMA ASSIGN MINUS NEWLINE PLUS MULTIPLY DIVIDE MODULO DOT RBRACKET LBRACKET IN OUT SYSTEM JAVA_IMPORT CASE DEFAULT
+%token  CLASS STATIC PRINTLN NEW IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS THIS
+%token  SEMICOLON EXTENDS COMMA ASSIGN MINUS NEWLINE PLUS MULTIPLY DIVIDE MODULO DOT RBRACKET LBRACKET IN OUT SYSTEM JAVA_IMPORT CASE DEFAULT
 %token  LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUALS NOT_EQUALS AND OR NOT    
-%token  LBRACE RBRACE LPAREN RPAREN 
+%token  MAIN LBRACE RBRACE LPAREN RPAREN 
 %token  INT FLOAT VOID STRING
 
 %left OR
@@ -50,87 +60,112 @@ typedef struct {
 
 %%
 
-program : statement_list { printf("Parsing completed !\n");}
-        | /* empty */
+program : class_declaration { printf("Parsing completed !\n");}
+        |program class_declaration
+        
+       |/* empty */
         ;
 
 statement_list :statement
                |statement_list statement
-               |function_decl
-               |class_declaration
-               |statement_list class_declaration
-               |class_declaration statement_list
+              
+               
                
                
                ;
-class_declaration: PUBLIC CLASS IDENTIFIER LBRACE class_body RBRACE
+class_declaration: PUBLIC CLASS IDENTIFIER EXTENDS IDENTIFIER  LBRACE class_body RBRACE
+                  | CLASS IDENTIFIER EXTENDS IDENTIFIER  LBRACE class_body RBRACE
                  | CLASS IDENTIFIER LBRACE class_body RBRACE
+                | PUBLIC CLASS IDENTIFIER LBRACE class_body RBRACE
+
                  ;
 
 class_body:statement_list 
            |statement_list function_decl
            |function_decl statement_list
+           |main_method
+           |function_decl
            |
           ;
 
                    ;
-function_decl:modifier type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |modifier VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             ;     
+function_decl: modifier static_func type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |static_func type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |static_func VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |modifier static_func VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE  
+
+             ;   
+static_func:  STATIC
+              |
+              ;
+main_method : PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET IDENTIFIER RPAREN LBRACE  func_body RBRACE 
+  ;
 parm: type_specifier IDENTIFIER
-      | 
+      |parm COMMA type_specifier IDENTIFIER
+      |
       ;
+
 func_body: statement_list
            |
            ;
 modifier: PUBLIC  
          |PRIVATE 
          |PROTECTED
-         |STATIC
+         
+         
             
         ; 
-assignment : IDENTIFIER ASSIGN expression {  char *identifier = $1;
+assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                          // Check if the identifier exists in the symbol table
-                                        int token = search_symbol_table(identifier);
-                                       if (token != -1) {
+                                        char *data_type = get_data_type($1);
+                                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result!=0) {
                                           // Identifier exists, perform the assignment
                                        printf("Assignment to identifier '%s' is allowed.\n", identifier);
                                             }
-                                             else {
+                                        else {
                                               // Identifier does not exist, print an error message
                                          printf("Error: Identifier '%s' not declared.\n", identifier);
-                                         yyerror("Assignment not allowed");
+                                         yyerror("Assignment before declaration is not allowed");
                                             // You can also choose to exit parsing or handle the error differently
-                                           } }
-           ;
+                                           } 
+                                           } 
+                                           ;
 statement :type_specifier expression SEMICOLON     
           | declaration SEMICOLON
           | assignment SEMICOLON { printf("Assignment statement parsed.\n"); }
           | selection_statement
           | iteration_statement
           | jump_statement
-          |out_put_statment
           |increament_decreament SEMICOLON
-          
+          |system_out_println SEMICOLON
+          |object_creation
+          |object_call
+          ;
+system_out_println : SYSTEM DOT OUT DOT PRINTLN LPAREN expr_or_string RPAREN
+                     ;
+expr_or_string : expression
+               | 
+               ;
 increament_decreament:IDENTIFIER PLUS PLUS 
                       |IDENTIFIER MINUS MINUS            
 
           ;
-out_put_statment:SYSTEM DOT 'println' LPAREN STRING_CONST RPAREN SEMICOLON
-                 |SYSTEM DOT 'println' LPAREN STRING_CONST LPAREN SEMICOLON
-                 |SYSTEM DOT 'println' LPAREN expression LPAREN SEMICOLON
-                 |SYSTEM DOT 'println' LPAREN STRING_CONST PLUS expression LPAREN SEMICOLON
-                 |SYSTEM DOT 'println' LPAREN expression PLUS STRING_CONST LPAREN SEMICOLON
-                 |SYSTEM DOT 'println' LPAREN  LPAREN SEMICOLON
 
-declaration : type_specifier var_declarations   
-             
+
+declaration : type_specifier var_declarations  
             
              
             ;
-
+object_creation:IDENTIFIER IDENTIFIER ASSIGN NEW IDENTIFIER LPAREN parm RPAREN SEMICOLON {  
+                                                                                        symbol_count=symbol_count-1;
+                                                                                         strcpy(symbol_table[symbol_count].data_type, $1);
+                                                                                             symbol_count=symbol_count+1;                                                                                       
+                                                                                          
+                                                                }
+                ;
+object_call: IDENTIFIER DOT IDENTIFIER  LPAREN parm RPAREN SEMICOLON
+           ;
 var_declarations : var_declaration
                  | var_declarations COMMA var_declaration
                  ;
@@ -140,11 +175,16 @@ var_declaration :  IDENTIFIER
                 
                 ;
 
-type_specifier : INT
-               | FLOAT
+type_specifier : INT {strcpy(symbol_table[symbol_count].data_type, "intger");
+                    } 
+               | FLOAT { 
+                         strcpy(symbol_table[symbol_count].data_type, "float");
+                            } 
                | STRING
-              
-                ;
+                      {
+                    strcpy(symbol_table[symbol_count].data_type, "String");
+                 } 
+              ;
 
 selection_statement : IF LPAREN expression RPAREN statement
                     | IF LPAREN expression RPAREN statement ELSE statement
@@ -191,7 +231,21 @@ expression : expression PLUS expression
            
            ;
 
-primary_expression : IDENTIFIER
+primary_expression : IDENTIFIER {  char* identifier =$1;
+                                         // Check if the identifier exists in the symbol table
+                                        char *data_type = get_data_type($1);
+                                         int result =strcmp(data_type,"UNKNOWN");
+                                       if (result!=0) {
+                                          // Identifier exists, perform the assignment
+                                       printf("Assignment to identifier for '%s' is allowed.\n", identifier);
+                                            }
+                                        else {
+                                              // Identifier does not exist, print an error message
+                                         printf("Error: Identifier '%s' not declared.\n", identifier);
+                                         yyerror("Assignment not allowed");
+                                            // You can also choose to exit parsing or handle the error differently
+                                           } 
+                                           } 
                     | FLOAT_CONST
                     | INT_CONST
                     | STRING_CONST
@@ -225,6 +279,7 @@ int main(int argc, char *argv[]) {
     }
 
     fclose(input_file);
+    displaySymbolTable();
 
     return 0;
 }
