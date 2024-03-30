@@ -45,7 +45,7 @@ typedef struct {
 %token <charval> CHAR_CONST
 
 %token  CLASS STATIC PRINTLN DOUBLE NEW CHAR IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS THIS
-%token  SEMICOLON EXTENDS COMMA ASSIGN MINUS NEWLINE PLUS MULTIPLY DIVIDE MODULO DOT RBRACKET LBRACKET IN OUT SYSTEM JAVA_IMPORT CASE DEFAULT
+%token  SEMICOLON EXTENDS COMMA ASSIGN MINUS COLON PLUS MULTIPLY DIVIDE MODULO DOT RBRACKET LBRACKET IN OUT SYSTEM JAVA_IMPORT CASE DEFAULT
 %token  LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUALS NOT_EQUALS AND OR NOT    
 %token  MAIN LBRACE RBRACE LPAREN RPAREN 
 %token  INT FLOAT VOID STRING
@@ -135,7 +135,6 @@ assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result!=0) {
                                           // Identifier exists, perform the assignment
-                                       printf("Assignment to identifier '%s' is allowed.\n", identifier);
                                             }
                                         else {
                                               // Identifier does not exist, print an error message
@@ -147,7 +146,7 @@ assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                            ;
 statement :type_specifier expression SEMICOLON     
           | declaration SEMICOLON
-          | assignment SEMICOLON { printf("Assignment statement parsed.\n"); }
+          | assignment SEMICOLON 
           | selection_statement
           | iteration_statement
           | jump_statement
@@ -155,6 +154,7 @@ statement :type_specifier expression SEMICOLON
           |system_out_println SEMICOLON
           |object_creation
           |object_call
+          |switch_statement
           
           ;
 system_out_println : SYSTEM DOT OUT DOT PRINTLN LPAREN expr_or_string RPAREN
@@ -172,14 +172,22 @@ declaration : type_specifier var_declarations
             
              
             ;
-object_creation: IDENTIFIER  IDENTIFIER ASSIGN NEW IDENTIFIER  LPAREN parm RPAREN SEMICOLON {  
-                                                                                        
-                                                                                         strcpy(symbol_table[symbol_count-1].data_type, strcat($1," obj"));
+object_creation: IDENTIFIER IDENTIFIER ASSIGN NEW IDENTIFIER  LPAREN parametr RPAREN SEMICOLON {  
+                                                                                         
+                                                                            strcpy(symbol_table[symbol_count-2].data_type, "class");
+                
+                                                                            strcpy(symbol_table[symbol_count-1].data_type, strcat($1," obj"));
                                                                                                                                                                                  
                                                                                           
                                                                 }
+                                                                ;
+parametr:expression
+         |primary_expression
+         |primary_expression COMMA expression
+         |SYSTEM DOT IN
+         |
                 ;
-object_call: IDENTIFIER DOT {strcpy(symbol_table[symbol_count].data_type, " function");} IDENTIFIER   LPAREN parm RPAREN SEMICOLON 
+object_call: IDENTIFIER DOT {strcpy(symbol_table[symbol_count].data_type, " function");} IDENTIFIER   LPAREN parametr RPAREN SEMICOLON 
            ;
 var_declarations : var_declaration
                  | var_declarations COMMA {
@@ -231,7 +239,22 @@ iteration_or_selection_statement_body:statement_list
 jump_statement : RETURN expression SEMICOLON
                | BREAK SEMICOLON
                ;
+switch_statement : SWITCH LPAREN expression RPAREN LBRACE switch_block_statements RBRACE 
+                  ;
 
+switch_block_statements : switch_block_statement 
+                          |switch_block_statements switch_block_statement
+                          ;
+switch_block_statement : switch_case_statement
+                          | default_case_statement 
+                         ;
+switch_case_statement : CASE expression COLON statement_list
+                          ;
+
+default_case_statement : DEFAULT COLON statement_list ;
+
+
+;
 expression : expression PLUS expression
            | expression MINUS expression
            | expression MULTIPLY expression
@@ -261,7 +284,6 @@ primary_expression : IDENTIFIER {  char* identifier =$1;
                                          int result =strcmp(data_type,"UNKNOWN");
                                        if (result!=0) {
                                           // Identifier exists, perform the assignment
-                                       printf("Assignment to identifier for '%s' is allowed.\n", identifier);
                                             }
                                         else {
                                               // Identifier does not exist, print an error message

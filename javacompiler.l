@@ -86,6 +86,7 @@ char* get_data_type(char* token_name) {
 "if"                    { return IF; }
 "else"                  { return ELSE; }
 "switch"                { return SWITCH; }
+"default"               {return DEFAULT;}
 "private"               { return PRIVATE; }
 "protected"              { return PROTECTED; }
 "public"                 { return PUBLIC; }
@@ -95,6 +96,7 @@ char* get_data_type(char* token_name) {
 "out"                    {return OUT;}
 "this"                   {return THIS;}
 "new"                   {return NEW;}
+"case"                   {return CASE;}
 ";"                     { return SEMICOLON; }
 ","                     { return COMMA; }
 "="                     { return ASSIGN; }
@@ -119,6 +121,8 @@ char* get_data_type(char* token_name) {
 "&&"                    { return AND; }
 "||"                    { return OR; }
 "!"                     { return NOT; }
+":"                       { return COLON; }
+"in"                     {return IN;}
 "int"                   {  return INT; }
 "float"                 {  return FLOAT; }
 "void"                  {  return VOID; }

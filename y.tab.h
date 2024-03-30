@@ -69,7 +69,7 @@
      COMMA = 285,
      ASSIGN = 286,
      MINUS = 287,
-     NEWLINE = 288,
+     COLON = 288,
      PLUS = 289,
      MULTIPLY = 290,
      DIVIDE = 291,
@@ -134,7 +134,7 @@
 #define COMMA 285
 #define ASSIGN 286
 #define MINUS 287
-#define NEWLINE 288
+#define COLON 288
 #define PLUS 289
 #define MULTIPLY 290
 #define DIVIDE 291

@@ -1,28 +1,33 @@
 // Main.java
-import java.util.ArrayList;
+
 public class Main {
-    public class Helper {
-        public void displayMessage() {
-            System.out.println("Hello from Helper class!");
-    }} // Helper.java
-    int jemberu;
-    public static void main(String[] args) {
-        System.out.println("Hello from Main class!");
-        Helper helper = new Helper();
-        for(int i;i<4;i++){
-        helper.displayMessage();
+
+  class AnotherClass {
+    void display() {
+        System.out.println("Hello from AnotherClass!");
     }
-  int a=3,b=3;
-    if(a==9){   
-   char d;
-        
-}
-while(a==9){
-a=456;
-}
-do{
- break;
-}while(a==9);
-}
+  }
+  
+  public static void main(String[] args) {
+      System.out.println("Hello from Main class!");
+      
+      // Creating an object of AnotherClass
+      AnotherClass anotherObj = new AnotherClass();
+      anotherObj.display();
+      
+      // Using a switch-case statement
+      int option = 2;
+      switch(option) {
+              case 1:
+              System.out.println("Option 1 selected");
+              break;
+          case 2:
+              System.out.println("Option 2 selected");
+              break;
+          default:
+              System.out.println("Invalid option");
+      }
+  }
 }
 
+// AnotherClass.java
