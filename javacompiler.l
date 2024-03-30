@@ -42,12 +42,13 @@ void add_to_symbol_table(char *name, int token) {
     symbol_count++;
 }
 void displaySymbolTable() {
+    
     printf("Symbol Table:\n");
     printf("------------------------------------------------\n");
      printf("%-20s | %-15s | %-10s\n", "Name", "Data Type", "Token Type");
      printf("--------------\n");
     for (int i = 0; i < symbol_count; i++) {
-     printf("%-20s | %-15s | %-10d\n", symbol_table[i].name, symbol_table[i].data_type, symbol_table[i].token_type);
+        printf("%-20s | %-15s | %-10s\n", symbol_table[i].name, symbol_table[i].data_type, token_strings[0]);
 
     }
     printf("------------------------------------------------\n");
@@ -72,7 +73,8 @@ char* get_data_type(char* token_name) {
 
 %%
 "main"                  { return MAIN; }
-"class"                 { strcpy(symbol_table[symbol_count].data_type, "class");return CLASS; }
+"class"                 { return CLASS; }
+"java\.".*               {return JAVA_IMPORT ; }
 "static"                { return STATIC; }
 "extends"                { return EXTENDS; }
 "import"                { return IMPORT; }
@@ -120,6 +122,8 @@ char* get_data_type(char* token_name) {
 "int"                   {  return INT; }
 "float"                 {  return FLOAT; }
 "void"                  {  return VOID; }
+"char"                  {  return CHAR; }
+"double"                  {  return DOUBLE; }
 "String"                {  return STRING; }
 [a-zA-Z_][a-zA-Z0-9_]*  {  yylval.strval = strdup(yytext); 
                         int index = search_symbol_table(yytext);

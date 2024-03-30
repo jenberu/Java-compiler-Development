@@ -44,7 +44,7 @@ typedef struct {
 %token <intval> INT_CONST
 %token <charval> CHAR_CONST
 
-%token  CLASS STATIC PRINTLN NEW IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS THIS
+%token  CLASS STATIC PRINTLN DOUBLE NEW CHAR IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS THIS
 %token  SEMICOLON EXTENDS COMMA ASSIGN MINUS NEWLINE PLUS MULTIPLY DIVIDE MODULO DOT RBRACKET LBRACKET IN OUT SYSTEM JAVA_IMPORT CASE DEFAULT
 %token  LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUALS NOT_EQUALS AND OR NOT    
 %token  MAIN LBRACE RBRACE LPAREN RPAREN 
@@ -59,13 +59,16 @@ typedef struct {
 %right NOT
 
 %%
-
+start:program
+    | import_statment start
+    |import_statment
+     ;
+import_statment:IMPORT JAVA_IMPORT 
+     ;
 program : class_declaration { printf("Parsing completed !\n");}
         |program class_declaration
-        
-       |/* empty */
+        |/* empty */
         ;
-
 statement_list :statement
                |statement_list statement
               
@@ -73,32 +76,43 @@ statement_list :statement
                
                
                ;
-class_declaration: PUBLIC CLASS IDENTIFIER EXTENDS IDENTIFIER  LBRACE class_body RBRACE
-                  | CLASS IDENTIFIER EXTENDS IDENTIFIER  LBRACE class_body RBRACE
-                 | CLASS IDENTIFIER LBRACE class_body RBRACE
-                | PUBLIC CLASS IDENTIFIER LBRACE class_body RBRACE
-
+class_declaration: PUBLIC CLASS IDENTIFIER {
+                   strcpy(symbol_table[symbol_count-1].data_type, "class");
+                } EXTENDS IDENTIFIER  LBRACE class_body RBRACE 
+                  | CLASS IDENTIFIER {
+                strcpy(symbol_table[symbol_count-1].data_type, "class");
+                }EXTENDS IDENTIFIER  LBRACE class_body RBRACE
+                 | CLASS IDENTIFIER LBRACE {
+                strcpy(symbol_table[symbol_count-1].data_type, "class");
+                }class_body RBRACE
+                | PUBLIC CLASS IDENTIFIER {
+                strcpy(symbol_table[symbol_count-1].data_type, "class");
+                }
+ LBRACE class_body RBRACE
                  ;
 
 class_body:statement_list 
-           |statement_list function_decl
-           |function_decl statement_list
-           |main_method
+           |statement_list class_body
            |function_decl
+           |function_decl class_body
+           |main_method 
+           |main_method class_body
+           |class_declaration 
+           |class_declaration class_body
            |
           ;
 
-                   ;
-function_decl: modifier static_func type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |static_func type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |static_func VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |modifier static_func VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE  
+                   
+function_decl:modifier static_func type_specifier  {strcpy(symbol_table[symbol_count].data_type, " function");} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |static_func type_specifier  {strcpy(symbol_table[symbol_count].data_type, "function");} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |static_func  {strcpy(symbol_table[symbol_count].data_type, "function");} VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |modifier static_func  {strcpy(symbol_table[symbol_count].data_type, "function");}  VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE  
 
              ;   
 static_func:  STATIC
               |
               ;
-main_method : PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET IDENTIFIER RPAREN LBRACE  func_body RBRACE 
+main_method : PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET {strcpy(symbol_table[symbol_count].data_type, "String");} IDENTIFIER RPAREN LBRACE  func_body RBRACE
   ;
 parm: type_specifier IDENTIFIER
       |parm COMMA type_specifier IDENTIFIER
@@ -141,6 +155,7 @@ statement :type_specifier expression SEMICOLON
           |system_out_println SEMICOLON
           |object_creation
           |object_call
+          
           ;
 system_out_println : SYSTEM DOT OUT DOT PRINTLN LPAREN expr_or_string RPAREN
                      ;
@@ -157,17 +172,20 @@ declaration : type_specifier var_declarations
             
              
             ;
-object_creation:IDENTIFIER IDENTIFIER ASSIGN NEW IDENTIFIER LPAREN parm RPAREN SEMICOLON {  
-                                                                                        symbol_count=symbol_count-1;
-                                                                                         strcpy(symbol_table[symbol_count].data_type, $1);
-                                                                                             symbol_count=symbol_count+1;                                                                                       
+object_creation: IDENTIFIER  IDENTIFIER ASSIGN NEW IDENTIFIER  LPAREN parm RPAREN SEMICOLON {  
+                                                                                        
+                                                                                         strcpy(symbol_table[symbol_count-1].data_type, strcat($1," obj"));
+                                                                                                                                                                                 
                                                                                           
                                                                 }
                 ;
-object_call: IDENTIFIER DOT IDENTIFIER  LPAREN parm RPAREN SEMICOLON
+object_call: IDENTIFIER DOT {strcpy(symbol_table[symbol_count].data_type, " function");} IDENTIFIER   LPAREN parm RPAREN SEMICOLON 
            ;
 var_declarations : var_declaration
-                 | var_declarations COMMA var_declaration
+                 | var_declarations COMMA {
+                                        strcpy(symbol_table[symbol_count].data_type, symbol_table[symbol_count-1].data_type);
+                                            }
+                                            var_declaration
                  ;
 
 var_declaration :  IDENTIFIER
@@ -184,24 +202,30 @@ type_specifier : INT {strcpy(symbol_table[symbol_count].data_type, "intger");
                       {
                     strcpy(symbol_table[symbol_count].data_type, "String");
                  } 
+                 |CHAR  {
+                    strcpy(symbol_table[symbol_count].data_type, "char");
+                 } 
+                 |DOUBLE {
+                    strcpy(symbol_table[symbol_count].data_type, "double");
+                 }
               ;
 
-selection_statement : IF LPAREN expression RPAREN statement
-                    | IF LPAREN expression RPAREN statement ELSE statement
-                    |IF LPAREN expression RPAREN LBRACE statement RBRACE ELSE statement
-                    |IF LPAREN expression RPAREN LBRACE statement RBRACE LBRACE statement RBRACE
-                    | SWITCH LPAREN expression RPAREN statement
-                    |IF LPAREN expression RPAREN LBRACE statement RBRACE
+selection_statement : IF LPAREN expression RPAREN iteration_or_selection_statement_body
+                    | IF LPAREN expression RPAREN iteration_or_selection_statement_body ELSE iteration_or_selection_statement_body
+                    |IF LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE ELSE iteration_or_selection_statement_body
+                    |IF LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE LBRACE iteration_or_selection_statement_body RBRACE
+                    | SWITCH LPAREN expression RPAREN iteration_or_selection_statement_body
+                    |IF LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE
                     ;
 
-iteration_statement : WHILE LPAREN expression RPAREN LBRACE iteration_statement_body RBRACE
-                    | DO LBRACE iteration_statement_body RBRACE WHILE LPAREN expression RPAREN SEMICOLON 
-                    | FOR LPAREN declaration SEMICOLON expression SEMICOLON expression RPAREN LBRACE iteration_statement_body RBRACE
-                    | FOR LPAREN  SEMICOLON SEMICOLON SEMICOLON RPAREN RPAREN LBRACE iteration_statement_body RBRACE
-                    | FOR LPAREN declaration SEMICOLON SEMICOLON RPAREN RPAREN LBRACE iteration_statement_body RBRACE
+iteration_statement : WHILE LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE
+                    | DO LBRACE iteration_or_selection_statement_body RBRACE WHILE LPAREN expression RPAREN SEMICOLON 
+                    | FOR LPAREN declaration SEMICOLON expression SEMICOLON expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE
+                    | FOR LPAREN  SEMICOLON SEMICOLON SEMICOLON RPAREN RPAREN LBRACE iteration_or_selection_statement_body RBRACE
+                    | FOR LPAREN declaration SEMICOLON SEMICOLON RPAREN RPAREN LBRACE iteration_or_selection_statement_body RBRACE
                     ;
              
-iteration_statement_body:statement_list
+iteration_or_selection_statement_body:statement_list
                          |
 
 jump_statement : RETURN expression SEMICOLON
