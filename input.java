@@ -1,21 +1,23 @@
 // Main.java
-
+import java.util.Scanner;
 public class Main {
+int a,b;
+  a=90;
 
-  class AnotherClass {
-    void display() {
-        System.out.println("Hello from AnotherClass!");
-    }
-  }
-  
+  String jembru="jemberu";
+  String group3="developers";
   public static void main(String[] args) {
-      System.out.println("Hello from Main class!");
+   
+      if(jembru=="jemberu")
+      {
+        System.out.println(group3);
+      }
       
       // Creating an object of AnotherClass
       AnotherClass anotherObj = new AnotherClass();
       anotherObj.display();
       
-      // Using a switch-case statement
+    while(a>=70){
       int option = 2;
       switch(option) {
               case 1:
@@ -27,7 +29,15 @@ public class Main {
           default:
               System.out.println("Invalid option");
       }
+    }
+  }
+ 
+ 
+}
+class AnotherClass {
+  void display() {
+ 
+      System.out.println("Hello from grup 3 developer team!");
   }
 }
-
 // AnotherClass.java

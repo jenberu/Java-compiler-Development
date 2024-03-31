@@ -77,16 +77,39 @@ statement_list :statement
                
                ;
 class_declaration: PUBLIC CLASS IDENTIFIER {
-                   strcpy(symbol_table[symbol_count-1].data_type, "class");
+                        char* identifier =$3;
+                                         // Check if the identifier exists in the symbol table
+                                        char *data_type = get_data_type($3);
+                                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                                            strcpy(symbol_table[symbol_count-1].data_type, "class");
+
+                                            }
+                                       
                 } EXTENDS IDENTIFIER  LBRACE class_body RBRACE 
                   | CLASS IDENTIFIER {
-                strcpy(symbol_table[symbol_count-1].data_type, "class");
+             char *data_type = get_data_type($2);
+                                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                                            strcpy(symbol_table[symbol_count-1].data_type, "class");
+
+                                            }
                 }EXTENDS IDENTIFIER  LBRACE class_body RBRACE
                  | CLASS IDENTIFIER LBRACE {
-                strcpy(symbol_table[symbol_count-1].data_type, "class");
+             char *data_type = get_data_type($2);
+                                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                                            strcpy(symbol_table[symbol_count-1].data_type, "class");
+
+                                            }
                 }class_body RBRACE
                 | PUBLIC CLASS IDENTIFIER {
-                strcpy(symbol_table[symbol_count-1].data_type, "class");
+               char *data_type = get_data_type($3);
+                                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                                            strcpy(symbol_table[symbol_count-1].data_type, "class");
+
+                                            }
                 }
  LBRACE class_body RBRACE
                  ;
@@ -173,13 +196,18 @@ declaration : type_specifier var_declarations
              
             ;
 object_creation: IDENTIFIER IDENTIFIER ASSIGN NEW IDENTIFIER  LPAREN parametr RPAREN SEMICOLON {  
+                                        char *data_type = get_data_type($1);
+                                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                                          strcpy(symbol_table[symbol_count-2].data_type, "class");
+
+                                            }
                                                                                          
-                                                                            strcpy(symbol_table[symbol_count-2].data_type, "class");
                 
-                                                                            strcpy(symbol_table[symbol_count-1].data_type, strcat($1," obj"));
+                                        strcpy(symbol_table[symbol_count-1].data_type, strcat($1," obj"));
                                                                                                                                                                                  
                                                                                           
-                                                                }
+                                        }
                                                                 ;
 parametr:expression
          |primary_expression
@@ -187,7 +215,13 @@ parametr:expression
          |SYSTEM DOT IN
          |
                 ;
-object_call: IDENTIFIER DOT {strcpy(symbol_table[symbol_count].data_type, " function");} IDENTIFIER   LPAREN parametr RPAREN SEMICOLON 
+object_call: IDENTIFIER DOT  IDENTIFIER  
+           {   char *data_type = get_data_type($3);
+                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                        strcpy(symbol_table[symbol_count-1].data_type, " function");
+                                            }
+            } LPAREN parametr RPAREN SEMICOLON 
            ;
 var_declarations : var_declaration
                  | var_declarations COMMA {
