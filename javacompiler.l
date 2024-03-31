@@ -8,6 +8,7 @@ struct symbol_entry {
     char name[50];
     char data_type[20];
      int token_type;
+     int location;
     // Add more attributes as needed
 };
 
@@ -35,20 +36,20 @@ int search_symbol_table(char *name) {
 
 
 // Function to add an entry to the symbol table
-void add_to_symbol_table(char *name, int token) {
+void add_to_symbol_table(char *name, int token,int location) {
     strcpy(symbol_table[symbol_count].name, name);
     symbol_table[symbol_count].token_type = token;
-
+    symbol_table[symbol_count].location = location;
     symbol_count++;
 }
 void displaySymbolTable() {
     
     printf("Symbol Table:\n");
     printf("------------------------------------------------\n");
-     printf("%-20s | %-15s | %-10s\n", "Name", "Data Type", "Token Type");
+     printf("%-20s | %-15s | %-10s | %-10s\n", "Name", "Data Type", "line number" ,"Token Type");
      printf("--------------\n");
-    for (int i = 0; i < symbol_count; i++) {
-        printf("%-20s | %-15s | %-10s\n", symbol_table[i].name, symbol_table[i].data_type, token_strings[0]);
+    for (int i = 0; i < symbol_count; i++) {                    
+        printf("%-20s | %-15s | %-10d |%-10s\n", symbol_table[i].name, symbol_table[i].data_type,  symbol_table[i].location,token_strings[0]);
 
     }
     printf("------------------------------------------------\n");
@@ -122,17 +123,17 @@ char* get_data_type(char* token_name) {
 "||"                    { return OR; }
 "!"                     { return NOT; }
 ":"                       { return COLON; }
-"in"                     {return IN;}
-"int"                   {  return INT; }
-"float"                 {  return FLOAT; }
-"void"                  {  return VOID; }
-"char"                  {  return CHAR; }
-"double"                  {  return DOUBLE; }
-"String"                {  return STRING; }
+"in"                     { return IN;}
+"int"                   { yylval.strval=strdup(yytext); return INT; }
+"float"                 { yylval.strval=strdup(yytext); return FLOAT; }
+"void"                  { yylval.strval=strdup(yytext);  return VOID; }
+"char"                  { yylval.strval=strdup(yytext);  return CHAR; }
+"double"                 {yylval.strval=strdup(yytext);   return DOUBLE; }
+"String"                { yylval.strval=strdup(yytext);  return STRING; }
 [a-zA-Z_][a-zA-Z0-9_]*  {  yylval.strval = strdup(yytext); 
                         int index = search_symbol_table(yytext);
                          if (index == -1) {
-                        add_to_symbol_table(yytext, IDENTIFIER);
+                        add_to_symbol_table(yytext, IDENTIFIER, line_number);
                        return IDENTIFIER; // Return IDENTIFIER token
                         }
                      else {
@@ -155,6 +156,7 @@ char* get_data_type(char* token_name) {
 int yywrap() {
      
    // Call displaySymbolTable at the end of processing
+     
 
     return 1; // Indicate that there are no more input files to process
 }

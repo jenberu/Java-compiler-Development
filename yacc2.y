@@ -11,6 +11,7 @@ extern struct symbol_entry {
     char name[50];
     char data_type[20];
     int token_type;
+    int location;
     // Add more attributes as needed
 } symbol_table[100];
 
@@ -38,17 +39,17 @@ typedef struct {
     int intval;
     char charval;
 }
-
-%token <strval> IDENTIFIER STRING_CONST
+%type <strval> type_specifier 
+%token <strval> IDENTIFIER STRING_CONST VOID
 %token <floatval> FLOAT_CONST
-%token <intval> INT_CONST
+%token <intval> INT_CONST 
 %token <charval> CHAR_CONST
 
 %token  CLASS STATIC PRINTLN DOUBLE NEW CHAR IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS THIS
 %token  SEMICOLON EXTENDS COMMA ASSIGN MINUS COLON PLUS MULTIPLY DIVIDE MODULO DOT RBRACKET LBRACKET IN OUT SYSTEM JAVA_IMPORT CASE DEFAULT
 %token  LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUALS NOT_EQUALS AND OR NOT    
 %token  MAIN LBRACE RBRACE LPAREN RPAREN 
-%token  INT FLOAT VOID STRING
+%token  INT FLOAT  STRING
 
 %left OR
 %left AND
@@ -59,13 +60,13 @@ typedef struct {
 %right NOT
 
 %%
-start:program
-    | import_statment start
-    |import_statment
+start:program 
+    |import_statment start
+    |import_statment 
      ;
 import_statment:IMPORT JAVA_IMPORT 
      ;
-program : class_declaration { printf("Parsing completed !\n");}
+program :class_declaration { printf("Parsing completed !\n");}
         |program class_declaration
         |/* empty */
         ;
@@ -126,10 +127,10 @@ class_body:statement_list
           ;
 
                    
-function_decl:modifier static_func type_specifier  {strcpy(symbol_table[symbol_count].data_type, " function");} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |static_func type_specifier  {strcpy(symbol_table[symbol_count].data_type, "function");} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |static_func  {strcpy(symbol_table[symbol_count].data_type, "function");} VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
-             |modifier static_func  {strcpy(symbol_table[symbol_count].data_type, "function");}  VOID IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE  
+function_decl:modifier static_func type_specifier  {strcpy(symbol_table[symbol_count].data_type, $3);} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |static_func type_specifier  {strcpy(symbol_table[symbol_count].data_type, $2);} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |static_func VOID {strcpy(symbol_table[symbol_count].data_type, $2);} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE   
+             |modifier static_func VOID {strcpy(symbol_table[symbol_count].data_type, $3);} IDENTIFIER LPAREN parm RPAREN LBRACE  func_body RBRACE  
 
              ;   
 static_func:  STATIC
@@ -149,9 +150,7 @@ modifier: PUBLIC
          |PRIVATE 
          |PROTECTED
          
-         
-            
-        ; 
+         ; 
 assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                          // Check if the identifier exists in the symbol table
                                         char *data_type = get_data_type($1);
@@ -176,10 +175,29 @@ statement :type_specifier expression SEMICOLON
           |increament_decreament SEMICOLON
           |system_out_println SEMICOLON
           |object_creation
-          |object_call
+          |fuction_call
           |switch_statement
-          
+          |array_declaration SEMICOLON
+          |array_intialization
           ;
+array_declaration : type_specifier IDENTIFIER LBRACKET RBRACKET  // Array declaration without size
+                    |type_specifier LBRACKET RBRACKET IDENTIFIER 
+                  | type_specifier IDENTIFIER LBRACKET primary_expression RBRACKET  // Array declaration with size
+                  ;
+array_intialization:array_declaration ASSIGN LBRACE arrayvalues RBRACE SEMICOLON
+                    |IDENTIFIER LBRACKET primary_expression  RBRACKET  ASSIGN expression SEMICOLON  {  char* identifier =$1;
+                                         // Check if the identifier exists in the symbol table
+                                        char *data_type = get_data_type($1);
+                                         int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                                        printf("Error: Identifier '%s' not declared.\n", identifier);
+                                         yyerror("Assignment not allowed");                                            }
+                                       
+                                           } 
+                     ;
+arrayvalues:expression
+           |arrayvalues COMMA expression
+           ;
 system_out_println : SYSTEM DOT OUT DOT PRINTLN LPAREN expr_or_string RPAREN
                      ;
 expr_or_string : expression
@@ -215,13 +233,19 @@ parametr:expression
          |SYSTEM DOT IN
          |
                 ;
-object_call: IDENTIFIER DOT  IDENTIFIER  
+fuction_call: IDENTIFIER DOT  IDENTIFIER  
            {   char *data_type = get_data_type($3);
                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
-                        strcpy(symbol_table[symbol_count-1].data_type, " function");
+                        strcpy(symbol_table[symbol_count-1].data_type, " func call");
                                             }
             } LPAREN parametr RPAREN SEMICOLON 
+            |IDENTIFIER LPAREN parametr RPAREN SEMICOLON  {   char *data_type = get_data_type($1);
+                        int result =strcmp(data_type,"UNKNOWN");
+                                       if (result==0) {
+                        strcpy(symbol_table[symbol_count-1].data_type, " func call");
+                                            }
+            }
            ;
 var_declarations : var_declaration
                  | var_declarations COMMA {
@@ -235,7 +259,7 @@ var_declaration :  IDENTIFIER
                 
                 ;
 
-type_specifier : INT {strcpy(symbol_table[symbol_count].data_type, "intger");
+type_specifier : INT {strcpy(symbol_table[symbol_count].data_type, "int");
                     } 
                | FLOAT { 
                          strcpy(symbol_table[symbol_count].data_type, "float");
@@ -252,11 +276,8 @@ type_specifier : INT {strcpy(symbol_table[symbol_count].data_type, "intger");
                  }
               ;
 
-selection_statement : IF LPAREN expression RPAREN iteration_or_selection_statement_body
-                    | IF LPAREN expression RPAREN iteration_or_selection_statement_body ELSE iteration_or_selection_statement_body
-                    |IF LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE ELSE iteration_or_selection_statement_body
-                    |IF LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE LBRACE iteration_or_selection_statement_body RBRACE
-                    | SWITCH LPAREN expression RPAREN iteration_or_selection_statement_body
+selection_statement :IF LPAREN expression RPAREN iteration_or_selection_statement_body
+                    |IF LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE ELSE LBRACE iteration_or_selection_statement_body RBRACE
                     |IF LPAREN expression RPAREN LBRACE iteration_or_selection_statement_body RBRACE
                     ;
 
@@ -268,7 +289,7 @@ iteration_statement : WHILE LPAREN expression RPAREN LBRACE iteration_or_selecti
                     ;
              
 iteration_or_selection_statement_body:statement_list
-                         |
+                                     |
 
 jump_statement : RETURN expression SEMICOLON
                | BREAK SEMICOLON
@@ -359,8 +380,8 @@ int main(int argc, char *argv[]) {
     }
 
     fclose(input_file);
-    displaySymbolTable();
-
+   
+ displaySymbolTable();
     return 0;
 }
 

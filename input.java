@@ -1,23 +1,40 @@
 // Main.java
 import java.util.Scanner;
-public class Main {
-int a,b;
-  a=90;
 
+
+public class Main {
+int b;
+String bd;
+  class AnotherClass {
+    void display() {
+   
+        System.out.println("Hello from grup 3 developer team!");
+    }
+  }
   String jembru="jemberu";
   String group3="developers";
   public static void main(String[] args) {
-   
-      if(jembru=="jemberu")
+    if(jembru=="jemberu")
       {
         System.out.println(group3);
       }
-      
-      // Creating an object of AnotherClass
+
+      int myArray[]={3,54,4242,245}; 
+      myArray[1]=89;
+
+      // Alternative syntax
+       // Preferred syntax
+// Creating an object of AnotherClass
       AnotherClass anotherObj = new AnotherClass();
-      anotherObj.display();
+      display();
+      if(jembru==2){
+        System.out.println("jemenbrtu");
+      }
+      else{
+        System.out.println("jemenbrtu");
       
-    while(a>=70){
+      }
+    while(b>=70){
       int option = 2;
       switch(option) {
               case 1:
@@ -34,10 +51,5 @@ int a,b;
  
  
 }
-class AnotherClass {
-  void display() {
- 
-      System.out.println("Hello from grup 3 developer team!");
-  }
-}
+
 // AnotherClass.java
