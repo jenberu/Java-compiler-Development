@@ -1,8 +1,14 @@
 // Main.java
 import java.util.Scanner;
+public class input{
+ for(int i=0;i<10;i++){
+System.out.println(i);
+}
+
+}
 
 
-public class Main {
+ class Main extends exteed {
 int b;
 String bd;
   class AnotherClass {
@@ -35,7 +41,7 @@ String bd;
       
       }
     while(b>=70){
-      int option = 2;
+    int   option = 2;
       switch(option) {
               case 1:
               System.out.println("Option 1 selected");
