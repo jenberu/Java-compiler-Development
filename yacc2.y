@@ -67,6 +67,7 @@ statement_list :statement
                
                
                ;
+               
 class_declaration: PUBLIC CLASS IDENTIFIER {
                                             char* identifier =$3;
                                          // Check if the identifier exists in the symbol table
@@ -154,7 +155,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
 
                              } 
                 }
- LBRACE class_body RBRACE
+LBRACE class_body RBRACE
                  ;
 
 class_body:statement_list 
