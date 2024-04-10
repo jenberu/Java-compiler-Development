@@ -7,6 +7,7 @@
 
 struct symbol_entry symbol_table[100];
 int symbol_count = 0;
+int scope_id=0;
 #define MAX_SCOPE_DEPTH 100
 char scope_stack[MAX_SCOPE_DEPTH][50];
 int scope_depth = 0;
@@ -45,7 +46,7 @@ void add_to_symbol_table(char *name, int token, int location,bool is_function) {
     symbol_table[symbol_count].location = location;
     symbol_table[symbol_count].is_function = is_function;
     strcpy(symbol_table[symbol_count].scope, get_current_scope());
-
+    symbol_table[symbol_count].scope_id=scope_id;
 
     symbol_count++;
 }
@@ -67,7 +68,7 @@ void set_is_function_attribute(char *name) {
 int search_symbol_table(char *name) {
     for (int i = 0; i < symbol_count; i++) {
         if (strcmp(symbol_table[i].name, name) == 0)
-            return symbol_table[i].token_type;
+        return symbol_table[i].token_type;
     }
     return -1;
 }
@@ -76,6 +77,7 @@ char* get_data_type(char* token_name) {
     for (int i = 0; i < symbol_count; i++) {
         if (strcmp(symbol_table[i].name, token_name) == 0) {
             if (strlen(symbol_table[i].data_type) > 0) {
+
                 return symbol_table[i].data_type;
             } else {
                 return "UNKNOWN";
@@ -88,11 +90,13 @@ char* get_data_type(char* token_name) {
 void displaySymbolTable() {
     printf("Symbol Table:\n");
     printf("-------------------------------------------------------------------------------------------------\n");
-    printf("%-20s | %-15s | %-10s | %-10s | %-10s| %-10s| %-10s\n", "Token Name", "Data Type", "line number" ,"Token Type","is function","value","scope");
+    printf("%-20s | %-15s | %-10s | %-10s | %-10s| %-5s| %-10s| %-10s\n", "Token Name", "Data Type", "line number" ,"Token Type","is function","value","scope","scope id");
     printf("---------------------------------------------------------------------------------------------------\n");
     for (int i = 0; i < symbol_count; i++) {                    
-        printf("%-20s | %-15s | %-10d |%-10s |%-10s |%-10s| %-10s\n", symbol_table[i].name, symbol_table[i].data_type, symbol_table[i].location,token_typeToString(symbol_table[i].token_type),boolToString(symbol_table[i].is_function),symbol_table[i].value,symbol_table[i].scope);
-    }
+        printf("%-20s | %-15s | %-10d |%-10s |%-10s |%-10s| %-10s  | %-10d\n", symbol_table[i].name, symbol_table[i].data_type, symbol_table[i].location,token_typeToString(symbol_table[i].token_type),boolToString(symbol_table[i].is_function),symbol_table[i].value,symbol_table[i].scope,symbol_table[i].scope_id);
+        printf("---------------------------------------------------------------------------------------------------\n");
+
+    }  
     printf("--------------------------------------------------------------------------------------------------\n");
 }
 bool check_constant_type_For_int(char *name){
@@ -129,12 +133,21 @@ bool is_declared(const char* name) {
     
     return false;
 }
-bool analyze_variable_declaration(const char* name, const char* data_type) {
+bool analyze_variable_declaration(const char* name) {
     for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(name, symbol_table[i].name) == 0 && strcmp(symbol_table[i].data_type , data_type)==0) {
-            printf("Error: Variable '%s' is already declared\n", name);
+        if (strcmp(name, symbol_table[i].name) == 0 )
+         {
+       
+           if(check_scope(symbol_table[i].scope))
             return false;
         }
     }
     return true;
 }
+bool check_scope( char* scope){
+    if(strcmp(get_current_scope(),scope)!=0){
+        return false;
+    }
+ return true;
+}
+

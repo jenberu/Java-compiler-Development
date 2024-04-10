@@ -67,7 +67,7 @@ bool analyzePlusExpression(char* leftOperand, char* rightOperand) {
 
     // Check if both operands are integers
     if (strcmp(leftOperandType, "int") != 0 || strcmp(rightOperandType, "int") != 0) {
-        printf("Semantic error: Operands '%s' and '%s' are not integers\n", leftOperand, rightOperand);
+        printf("Semantic error: Operands '%s' and '%s' are not numbers\n", leftOperand, rightOperand);
         return false;
     }
 
@@ -80,7 +80,7 @@ void addAssignmentValue(char* identifier, char* value) {
 
     int index = -1;
     for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(identifier, symbol_table[i].name) == 0) {
+        if (strcmp(identifier, symbol_table[i].name) == 0 && strcmp(get_current_scope(),symbol_table[i].scope)==0) {
             index = i;
             break;
         }
@@ -91,4 +91,18 @@ strcpy(symbol_table[index].value,value);
 
     
 }
-
+bool check_same_or_not_type_For_ids(char *id1,char *id2){
+    if(strcmp(get_data_type(id1),get_data_type(id2))==0)
+    return true;
+ else
+ return false;
+}
+ void getValueOfid(char * identfier1,char* identfier2){
+     for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(identfier2, symbol_table[i].name) ==0) {
+           addAssignmentValue(identfier1,symbol_table[i].value);
+            break;
+        }
+    }
+   
+ }

@@ -14,6 +14,8 @@ extern int line_number;
 extern int yylex();
 extern FILE *yyin;
 void yyerror(const char *s);
+void semantic_error(const char *msg);
+extern int scope_id;
 
 // Define YYSTYPE struct for semantic values
 typedef struct {
@@ -67,7 +69,6 @@ statement_list :statement
                
                
                ;
-               
 class_declaration: PUBLIC CLASS IDENTIFIER {
                                             char* identifier =$3;
                                          // Check if the identifier exists in the symbol table
@@ -100,7 +101,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
 
                              } 
                                        
-                }  LBRACE class_body RBRACE 
+                }  LBRACE{ scope_id++;} class_body RBRACE 
                   | CLASS IDENTIFIER {
                                           char* identifier=$2;
                                       char *data_type = get_data_type($2);
@@ -127,8 +128,8 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
-                }LBRACE class_body RBRACE
-                 | CLASS IDENTIFIER LBRACE {
+                }LBRACE { scope_id++;} class_body RBRACE
+                 | CLASS IDENTIFIER LBRACE { scope_id++;
                                     char* identifier=$2;
                              char *data_type = get_data_type($2);
                                         int result =strcmp(data_type,"UNKNOWN");
@@ -155,7 +156,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
 
                              } 
                 }
-LBRACE class_body RBRACE
+ LBRACE { scope_id++;} class_body RBRACE
                  ;
 
 class_body:statement_list 
@@ -169,7 +170,7 @@ class_body:statement_list
            |
           ;
 
-function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN LBRACE {push_scope("local");}  func_body RBRACE   {pop_scope();
+function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE   {pop_scope();
                                 push_scope("local");
                                  char* identifier=$4;
                               int token = search_symbol_table(identifier);
@@ -179,7 +180,7 @@ function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN
                              } 
                          set_is_function_attribute($4);
                              } 
-             |static_func type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE {push_scope("local");}  func_body RBRACE  {pop_scope();
+             |static_func type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE  {pop_scope();
                 char* identifier=$3;
                               int token = search_symbol_table(identifier);
                              if (token == -1) {
@@ -188,7 +189,7 @@ function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN
                              } 
         set_is_function_attribute($3);
     }  
-             |static_func VOID IDENTIFIER LPAREN parm RPAREN LBRACE {push_scope("local");}  func_body RBRACE {  pop_scope();
+             |static_func VOID IDENTIFIER LPAREN parm RPAREN LBRACE {scope_id++; push_scope("local");}  func_body RBRACE {  pop_scope();
                                    char* identifier=$3;
                                 strcpy(symbol_table[symbol_count].data_type, "void");
             
@@ -198,7 +199,7 @@ function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN
 
                              } 
                          set_is_function_attribute($3);}
-             |modifier static_func VOID  IDENTIFIER LPAREN parm RPAREN LBRACE {push_scope("local");}  func_body RBRACE {pop_scope();
+             |modifier static_func VOID  IDENTIFIER LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE {pop_scope();
                                 char* identifier=$4;
                                 strcpy(symbol_table[symbol_count].data_type, "void");
                               int token = search_symbol_table(identifier);
@@ -212,8 +213,9 @@ function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN
 static_func:  STATIC
               |
               ;
-main_method : PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET {
-  strcpy(symbol_table[symbol_count].data_type, "String");} IDENTIFIER RPAREN LBRACE  {push_scope("local"); } func_body RBRACE{pop_scope();}
+main_method : PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET IDENTIFIER {
+  strcpy(symbol_table[symbol_count].data_type, "String");add_to_symbol_table($9, IDENTIFIER, line_number ,false);
+} RPAREN LBRACE  { scope_id++; push_scope("local"); } func_body RBRACE{pop_scope();}
   ;
 parm: type_specifier IDENTIFIER
       |parm COMMA type_specifier IDENTIFIER
@@ -230,119 +232,113 @@ modifier: PUBLIC
          
          ; 
 assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
+                                          char* identifier1 =$3;
 
-                           int token = search_symbol_table(identifier);
-                              if (token != -1) {
-                          printf("Error: Identifier '%s' already exists in the symbol table with token type %d.\n", identifier, token);
-                          yyerror("Identifier already declared");
-                          
-                      }
-                             else  {
-
-                    add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
-
-                           } 
-                                        char *data_type = get_data_type($1);
-                                        int result =strcmp(data_type,"UNKNOWN");
+                        
+                                        char *data_type1 = get_data_type($1);
+                                         char *data_type2 = get_data_type($3);
+                                        int result =strcmp(data_type1,"UNKNOWN");
+                                        int result1 =strcmp(data_type2,"UNKNOWN");
+                                            if (result1==0) {
+                                         printf("Error: Identifier '%s' not declared.\n", identifier1);
+                                         semantic_error("usage before declaration is not allowed");
+                                            }
                                        if (result==0) {
                                          printf("Error: Identifier '%s' not declared.\n", identifier);
-                                         yyerror("Assignment before declaration is not allowed");
+                                         semantic_error("Assignment before declaration is not allowed");
                                             }
                                         
-                                        
+                                        if(!check_same_or_not_type_For_ids($1,$3)){
+
+                                        semantic_error("Semantic error: oprandes  in differnt type can not be assined\n");
+                                                 }
+                                              else
+                                                 getValueOfid($1,$3);
                                     
 
                                        }
               |IDENTIFIER ASSIGN STRING_CONST{
                               char* identifier =$1;
-                               int token = search_symbol_table(identifier);
-                             if (token != -1) {
-                          printf("Error: Identifier '%s' already exists in the symbol table with token type %d.\n", identifier, token);
-                          yyerror("Identifier already declared");
-                          
-                      }
-                             else  {
-
-                    add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
-
-                           } 
-                                         // Check if the identifier exists in the symbol table
+                   
+                     // Check if the identifier exists in the symbol table
                                         char *data_type = get_data_type($1);
                                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
                                          printf("Error: Identifier '%s' not declared.\n", identifier);
-                                         yyerror("Assignment before declaration is not allowed");
+                                         semantic_error("Assignment before declaration is not allowed");
                                             }
                                       
                                           else if(!check_constant_type_For_String($1)){
                                                 
                                                 
-                                               yyerror("Semantic error: oprades are in differnt type can not be assined\n");
+                                               semantic_error("Semantic error: oprades are in differnt type can not be assined\n");
                                                  }
                                               else
                                                  addAssignmentValue($1,$3);
 
                                                  } 
               |IDENTIFIER ASSIGN INT_CONST {  char* identifier =$1;
-                                            int token = search_symbol_table(identifier);
-                   if (token != -1) {
-                          printf("Error: Identifier '%s' already exists in the symbol table with token type %d.\n", identifier, token);
-                          yyerror("Identifier already declared");
+                      //            if (!analyze_variable_declaration(identifier)) {
+                      //     printf("Error: Identifier '%s'is already declared \n", identifier);
+                      //     semantic_error("Identifier with same scope can not be redclare");
                           
-                      }
-                             else  {
+                      // }
 
-                    add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
-                           } 
+                      
+                    
+                          //    else {
+
+                          //   add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+
+                          //  } 
                                          // Check if the identifier exists in the symbol table
                                         char *data_type = get_data_type($1);
                                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
                                          printf("Error: Identifier '%s' not declared.\n", identifier);
-                                         yyerror("Assignment before declaration is not allowed");
+                                         semantic_error("Assignment of int const  before declaration is not allowed");
                                             }
                                             
-                                            else if(!check_constant_type_For_int($1)){
-                                                 yyerror("Semantic error: oprades are in differnt type\n");
+                                    else if(!check_constant_type_For_int($1)){
+                                      semantic_error("ID is not INT type\n");
 
                                                  }
                                                  else  addAssignmentValue($1,$3);
                                                  } 
               |IDENTIFIER ASSIGN FLOAT_CONST {  char* identifier =$1;
-                                                int token = search_symbol_table(identifier);
-                              if (token != -1) {
-                          printf("Error: Identifier '%s' already exists in the symbol table with token type %d.\n", identifier, token);
-                          yyerror("Identifier already declared");
+                    //           if (!analyze_variable_declaration(identifier)) {
+                    //       printf("Error: Identifier '%s'is already declared \n", identifier);
+                    //       semantic_error("Identifier with same scope can not be redclare");
                           
-                      }
-                             else  {
+                    //   }
+                    //          else  {
 
-                    add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                    // add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
-                           } 
-                                         // Check if the identifier exists in the symbol table
+                    //        } 
+                   // Check if the identifier exists in the symbol table
                                         char *data_type = get_data_type($1);
                                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
                                          printf("Error: Identifier '%s' not declared.\n", identifier);
-                                         yyerror("Assignment before declaration is not allowed");
+                                         semantic_error("Assignment before declaration is not allowed");
                                             }
 
                                             if(!check_constant_type_For_Float($1)){
-                                                 yyerror("Semantic error: oprades are in differnt type\n");
+                                                 semantic_error("Semantic error: the data type of ID is not float type\n");
 
                                                  }
                                                  else addAssignmentValue($1,$3);
                                                  }        
                                         
                                            ;
-statement :type_specifier expression SEMICOLON     
-          | declaration SEMICOLON
-          | assignment SEMICOLON 
-          | selection_statement
-          | iteration_statement
-          | jump_statement
+statement :expression SEMICOLON     
+          |declaration SEMICOLON
+          |assignment SEMICOLON 
+          |selection_statement
+          |iteration_statement
+          |jump_statement
           |increament_decreament SEMICOLON
           |system_out_println SEMICOLON
           |object_creation
@@ -362,7 +358,7 @@ array_intialization:array_declaration ASSIGN LBRACE arrayvalues RBRACE SEMICOLON
                                          int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
                                         printf("Error: Identifier '%s' not declared.\n", identifier);
-                                         yyerror("Assignment not allowed");                                            }
+                                         semantic_error("Assignment not allowed");                                            }
                                        
                                            } 
                      ;
@@ -405,13 +401,13 @@ fuction_call: IDENTIFIER DOT  IDENTIFIER
            {   char *data_type = get_data_type($3);
                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
-                        strcpy(symbol_table[symbol_count-1].data_type, " func call");
+                        strcpy(symbol_table[symbol_count].data_type, " func call");
                                             }
             } LPAREN parametr RPAREN SEMICOLON 
             |IDENTIFIER LPAREN parametr RPAREN SEMICOLON  {   char *data_type = get_data_type($1);
                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
-                        strcpy(symbol_table[symbol_count-1].data_type, " func call");
+                        strcpy(symbol_table[symbol_count].data_type, " func call");
                                             }
             }
            ;
@@ -429,24 +425,40 @@ var_declarations : var_declaration
                  ;
 
 var_declaration :  IDENTIFIER  { char* identifier =$1;
-                 printf("Variable declaration: %s\n", $1);
 
-                      int token = search_symbol_table(identifier);
-                      if (token != -1) {
-                          printf("Error: Identifier '%s' already exists in the symbol table with token type %d.\n", identifier, token);
-                          yyerror("Identifier already declared");
+                      if (!analyze_variable_declaration(identifier)) {
+                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          semantic_error("Identifier with same scope can not be redclare");
                           
                       }
                       else  {
-                     printf("Identifier '%s' added to symbol table with token type %d.\n", identifier, IDENTIFIER);
 
                         add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                       } 
                                           
                      } 
-                  |assignment 
-                   ;
+                     |IDENTIFIER ASSIGN primary_expression  { char* identifier =$1;
+
+                      if (!analyze_variable_declaration(identifier)) {
+                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          semantic_error("Identifier with same scope can not be redclare");
+                          
+                      }
+                      else  {
+
+                        add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                          addAssignmentValue($1,$3);
+
+
+                      } 
+                      //  if(!check_constant_type_For_int($1)){
+                      //      semantic_error("ID is not INT type\n");
+
+                      //      }
+                                          
+                     } 
+                 ;
 type_specifier : INT {strcpy(symbol_table[symbol_count].data_type, "int");
                     } 
                | FLOAT { 
@@ -503,18 +515,30 @@ expression : expression PLUS expression {
                                       exit(EXIT_FAILURE);
                                       } }
            | expression MINUS expression {if(!analyzePlusExpression($1,$3)){
-                                       yyerror("Semantic error: Operands  are not of the same type\n");} }
+                                       semantic_error("Semantic error: Operands  are not of the same type\n");} }
            | expression MULTIPLY expression{if(!analyzePlusExpression($1,$3)){
-                                       yyerror("Semantic error: Operands  are not of the same type\n");} }
-           | expression DIVIDE expression{if(!analyzePlusExpression($1,$3)){
-                                       yyerror("Semantic error: Operands  are not of the same type\n");} }
-           | expression MODULO expression 
-           | expression LESS_THAN expression
-           | expression LESS_EQUAL expression
-           | expression GREATER_THAN expression
-           | expression GREATER_EQUAL expression
-           | expression EQUALS expression
-           | expression NOT_EQUALS expression
+                                       semantic_error("Semantic error: Operands  are not of the same type\n");} }
+           | expression DIVIDE expression{ 
+                                             if(strcmp($3,"0")==0){
+                                               
+                                            semantic_error("Semantic error: Can not be diveded by zero\n");}
+
+                                        else if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Operands  are not of the same type\n");} }
+           | expression MODULO expression {if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+           | expression LESS_THAN expression{if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+           | expression LESS_EQUAL expression{if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+           | expression GREATER_THAN expression{if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+           | expression GREATER_EQUAL expression{if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+           | expression EQUALS expression{if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+           | expression NOT_EQUALS expression{if(!analyzePlusExpression($1,$3)){
+                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
            | expression AND expression
            | expression OR expression
            | NOT expression
@@ -528,19 +552,7 @@ expression : expression PLUS expression {
            ;
 
 primary_expression : IDENTIFIER {  
-                                      //    // Check if the identifier exists in the symbol table
-                                      //   char *data_type = get_data_type();
-                                      //    int result =strcmp(data_type,"UNKNOWN");
-                                      //  if (result!=0) {
-                                      //     // Identifier exists, perform the assignment
-                                      //       }
-                                      //   else {
-                                      //         // Identifier does not exist, print an error message
-                                      //    printf("Error: Identifier '%s' not declared.\n", identifier);
-                                      //    yyerror("Assignment not allowed");
-                                      //       // You can also choose to exit parsing or handle the error differently
-                                      //      } 
-                                      char* identifier =$1;
+                                  char* identifier =$1;
          
                       int token = search_symbol_table(identifier);
                       if (token == -1) {
@@ -560,6 +572,10 @@ primary_expression : IDENTIFIER {
 void yyerror(const char *s) {
     fprintf(stderr, "Syntax error at line %d: %s\n", line_number, s);
     exit(EXIT_FAILURE);
+}
+void semantic_error(const char *msg) {
+    fprintf(stderr, "Semantic error at line %d: %s\n",line_number, msg);
+     exit(EXIT_FAILURE);
 }
 
 
