@@ -75,8 +75,8 @@ int search_symbol_table(char *name) {
 
 char* get_data_type(char* token_name) {
     for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(symbol_table[i].name, token_name) == 0) {
-            if (strlen(symbol_table[i].data_type) > 0) {
+        if (strcmp(symbol_table[i].name, token_name) == 0 && symbol_table[i].scope_id==scope_id) {
+            if (strlen(symbol_table[i].data_type) > 0 ) {
 
                 return symbol_table[i].data_type;
             } else {
@@ -100,7 +100,6 @@ void displaySymbolTable() {
     printf("--------------------------------------------------------------------------------------------------\n");
 }
 bool check_constant_type_For_int(char *name){
-
 
   if(strcmp(get_data_type(name),"int")==0){
 
@@ -138,14 +137,14 @@ bool analyze_variable_declaration(const char* name) {
         if (strcmp(name, symbol_table[i].name) == 0 )
          {
        
-           if(check_scope(symbol_table[i].scope))
+           if(check_scope(symbol_table[i].scope_id))
             return false;
         }
     }
     return true;
 }
-bool check_scope( char* scope){
-    if(strcmp(get_current_scope(),scope)!=0){
+bool check_scope( int scopeid){
+    if(scope_id != scopeid){
         return false;
     }
  return true;

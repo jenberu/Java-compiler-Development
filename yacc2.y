@@ -79,8 +79,11 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
 
                                             }
                                             
-                              int token = search_symbol_table(identifier);
-                             if (token == -1) {
+                              //int token = search_symbol_table(identifier);
+                             if(check_class_redeclaration(identifier)) {
+                                semantic_error("the class is already defined ,class the with same name not allowod in java\n");
+                             }
+                             else {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
@@ -96,8 +99,8 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
 
                                             }
                                   int token = search_symbol_table(identifier);
-                             if (token == -1) {
-                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                            if (token == -1) {
+                  semantic_error("unknown class ,the extended class is not defiend\n");
 
                              } 
                                        
@@ -110,8 +113,10 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
                                             strcpy(symbol_table[symbol_count].data_type, "class");
 
                                             }
-                                    int token = search_symbol_table(identifier);
-                             if (token == -1) {
+                                     if(check_class_redeclaration(identifier)) {
+                                semantic_error("the class is already defined ,class the with same name not allowod in java\n");
+                             }
+                             else {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
@@ -125,7 +130,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
                                             }
                                     int token = search_symbol_table(identifier);
                              if (token == -1) {
-                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                  semantic_error(" unknown class ,the extended class is not defiend\n");
 
                              } 
                 }LBRACE { scope_id++;} class_body RBRACE
@@ -137,11 +142,13 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
                                             strcpy(symbol_table[symbol_count].data_type, "class");
 
                                             }
-                                            int token = search_symbol_table(identifier);
-                             if (token == -1) {
+                                         if(check_class_redeclaration(identifier)) {
+                                semantic_error("the class is already defined ,class the with same name not allowod in java\n");
+                             }
+                             else {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
-                             } 
+                             }  
                 }class_body RBRACE
                 | PUBLIC CLASS IDENTIFIER {char *identifier=$3;
                                         char *data_type = get_data_type($3);
@@ -150,8 +157,10 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
                                             strcpy(symbol_table[symbol_count].data_type, "class");
 
                                             }
-                                                int token = search_symbol_table(identifier);
-                             if (token == -1) {
+                              if(check_class_redeclaration(identifier)) {
+                                semantic_error(" the class is already defined ,class the with same name not allowod in java\n");
+                             }
+                             else {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
@@ -170,27 +179,37 @@ class_body:statement_list
            |
           ;
 
-function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE   {pop_scope();
-                                push_scope("local");
-                                 char* identifier=$4;
+function_decl:modifier static_func type_specifier  IDENTIFIER { char* identifier=$4;
+                                 if(check_function_redeclaration(identifier)){
+                                semantic_error("the function is already defined ,function the with same name not allowod in java\n");
+
+                                   }
                               int token = search_symbol_table(identifier);
                              if (token == -1) {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
-                         set_is_function_attribute($4);
+                         set_is_function_attribute($4);} LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE   {pop_scope();
+                                
                              } 
-             |static_func type_specifier IDENTIFIER LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE  {pop_scope();
-                char* identifier=$3;
+             |static_func type_specifier IDENTIFIER { char* identifier=$3;
+                if(check_function_redeclaration(identifier)){
+                                semantic_error(" the function is already defined ,function the with same name not allowod in java\n");
+
+                                   }
                               int token = search_symbol_table(identifier);
                              if (token == -1) {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
-        set_is_function_attribute($3);
+        set_is_function_attribute($3);} LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE  {pop_scope();
+               
     }  
-             |static_func VOID IDENTIFIER LPAREN parm RPAREN LBRACE {scope_id++; push_scope("local");}  func_body RBRACE {  pop_scope();
-                                   char* identifier=$3;
+             |static_func VOID IDENTIFIER{ char* identifier=$3;
+                                   if(check_function_redeclaration(identifier)){
+                                semantic_error("the function is already defined ,function the with same name not allowod in java\n");
+
+                                   }
                                 strcpy(symbol_table[symbol_count].data_type, "void");
             
                               int token = search_symbol_table(identifier);
@@ -198,16 +217,21 @@ function_decl:modifier static_func type_specifier  IDENTIFIER LPAREN parm RPAREN
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
-                         set_is_function_attribute($3);}
-             |modifier static_func VOID  IDENTIFIER LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE {pop_scope();
-                                char* identifier=$4;
+                         set_is_function_attribute($3);} LPAREN parm RPAREN LBRACE {scope_id++; push_scope("local");}  func_body RBRACE {  pop_scope();
+                                  }
+             |modifier static_func VOID  IDENTIFIER {char* identifier=$4;
+                                if(check_function_redeclaration(identifier)){
+                                semantic_error("the function is already defined ,function the with same name not allowod in java\n");
+
+                                   }
                                 strcpy(symbol_table[symbol_count].data_type, "void");
                               int token = search_symbol_table(identifier);
                              if (token == -1) {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              } 
-                      set_is_function_attribute($4);}
+                      set_is_function_attribute($4);} LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE {pop_scope();
+                                }
 
              ;   
 static_func:  STATIC
@@ -231,7 +255,7 @@ modifier: PUBLIC
          
          
          ; 
-assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
+assignment : IDENTIFIER ASSIGN IDENTIFIER {  char* identifier =$1;
                                           char* identifier1 =$3;
 
                         
@@ -239,18 +263,19 @@ assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                          char *data_type2 = get_data_type($3);
                                         int result =strcmp(data_type1,"UNKNOWN");
                                         int result1 =strcmp(data_type2,"UNKNOWN");
-                                            if (result1==0) {
-                                         printf("Error: Identifier '%s' not declared.\n", identifier1);
-                                         semantic_error("usage before declaration is not allowed");
-                                            }
+                                           
                                        if (result==0) {
                                          printf("Error: Identifier '%s' not declared.\n", identifier);
                                          semantic_error("Assignment before declaration is not allowed");
                                             }
+                                             if (result1==0) {
+                                         printf("Error: Identifier '%s' not declared.\n", identifier1);
+                                         semantic_error("usage before declaration is not allowed");
+                                            }
                                         
                                         if(!check_same_or_not_type_For_ids($1,$3)){
 
-                                        semantic_error("Semantic error: oprandes  in differnt type can not be assined\n");
+                                        semantic_error("oprandes  in differnt type can not be assined\n");
                                                  }
                                               else
                                                  getValueOfid($1,$3);
@@ -260,8 +285,7 @@ assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
               |IDENTIFIER ASSIGN STRING_CONST{
                               char* identifier =$1;
                    
-                     // Check if the identifier exists in the symbol table
-                                        char *data_type = get_data_type($1);
+                               char *data_type = get_data_type($1);
                                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
                                          printf("Error: Identifier '%s' not declared.\n", identifier);
@@ -269,9 +293,9 @@ assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                             }
                                       
                                           else if(!check_constant_type_For_String($1)){
+                                                 printf("Error: Identifier '%s' is not String type.\n", $1);
                                                 
-                                                
-                                               semantic_error("Semantic error: oprades are in differnt type can not be assined\n");
+                                               semantic_error(" oprades are in differnt type can not be assined\n");
                                                  }
                                               else
                                                  addAssignmentValue($1,$3);
@@ -301,7 +325,9 @@ assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                             }
                                             
                                     else if(!check_constant_type_For_int($1)){
-                                      semantic_error("ID is not INT type\n");
+                                      printf("Error: Identifier '%s' is not int type.\n", $1);
+
+                                      semantic_error("Error type incopatable\n");
 
                                                  }
                                                  else  addAssignmentValue($1,$3);
@@ -326,7 +352,9 @@ assignment : IDENTIFIER ASSIGN expression {  char* identifier =$1;
                                             }
 
                                             if(!check_constant_type_For_Float($1)){
-                                                 semantic_error("Semantic error: the data type of ID is not float type\n");
+                                                 printf("Error: Identifier '%s' is not float type.\n", $1);
+
+                                                 semantic_error(" the data type of ID is not float type\n");
 
                                                  }
                                                  else addAssignmentValue($1,$3);
@@ -346,6 +374,21 @@ statement :expression SEMICOLON
           |switch_statement
           |array_declaration SEMICOLON
           |array_intialization
+          |IDENTIFIER ASSIGN expression SEMICOLON
+          |type_specifier IDENTIFIER ASSIGN expression SEMICOLON{ char* identifier =$2;
+
+                      if (!analyze_variable_declaration(identifier)) {
+                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          semantic_error("Identifier with same scope can not be redclare");
+                          
+                      }
+                      else  {
+
+                        add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+
+                      } 
+                                          
+                     } 
           ;
 array_declaration : type_specifier IDENTIFIER LBRACKET RBRACKET  // Array declaration without size
                     |type_specifier LBRACKET RBRACKET IDENTIFIER 
@@ -411,7 +454,7 @@ fuction_call: IDENTIFIER DOT  IDENTIFIER
                                             }
             }
            ;
-declaration : type_specifier var_declarations 
+declaration : type_specifier  var_declarations 
                      
                   
             
@@ -438,7 +481,9 @@ var_declaration :  IDENTIFIER  { char* identifier =$1;
                       } 
                                           
                      } 
-                     |IDENTIFIER ASSIGN primary_expression  { char* identifier =$1;
+                     |IDENTIFIER ASSIGN IDENTIFIER  { char* identifier =$1;
+                                                     char* identifier1 =$3;
+
 
                       if (!analyze_variable_declaration(identifier)) {
                           printf("Error: Identifier  '%s'is already declared \n", identifier);
@@ -452,12 +497,60 @@ var_declaration :  IDENTIFIER  { char* identifier =$1;
 
 
                       } 
-                      //  if(!check_constant_type_For_int($1)){
-                      //      semantic_error("ID is not INT type\n");
+                     
 
-                      //      }
+                        
+                                         char *data_type2 = get_data_type($3);
+                                        int result1 =strcmp(data_type2,"UNKNOWN");
+                                           
+                                        if (result1==0) {
+                                         printf("Error: Identifier '%s' not declared.\n", identifier1);
+                                         semantic_error("usage before declaration is not allowed");
+                                            }
+                                        
+                                        if(!check_same_or_not_type_For_ids($1,$3)){
+
+                                        semantic_error("oprandes  in differnt type can not be assined\n");
+                                                 }
+                                              else
+                                                 getValueOfid($1,$3);
                                           
                      } 
+                     |IDENTIFIER ASSIGN INT_CONST {
+                                    char* identifier =$1;
+                                     add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+
+                                      if(!check_constant_type_For_int($1)){
+                                      printf("Error: Identifier '%s' is not int type.\n", $1);
+
+                                      semantic_error("type incopatable\n");
+
+                                                 }
+                                                 else  addAssignmentValue($1,$3);
+                                                 }
+                    |IDENTIFIER ASSIGN STRING_CONST{
+                      char* identifier =$1;
+                                              add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+
+                                     if(!check_constant_type_For_String($1)){
+                                          printf("Error: Identifier '%s' is not String type.\n", $1);
+
+                                                
+                                               semantic_error("type incpatable Identifier is not String type\n");
+                                                 }
+                                              else
+                                                 addAssignmentValue($1,$3);}       
+                   |IDENTIFIER ASSIGN FLOAT_CONST{ 
+                    char* identifier =$1;
+                                      add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+
+                                     if(!check_constant_type_For_Float($1)){
+                                                printf("Error: Identifier '%s' is not Float type.\n", $1);
+
+                                                 semantic_error(" the Identifier is not float type\n");
+
+                                                 }
+                                                 else addAssignmentValue($1,$3);}                                                    
                  ;
 type_specifier : INT {strcpy(symbol_table[symbol_count].data_type, "int");
                     } 
@@ -515,30 +608,30 @@ expression : expression PLUS expression {
                                       exit(EXIT_FAILURE);
                                       } }
            | expression MINUS expression {if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Operands  are not of the same type\n");} }
+                                       semantic_error("Operands  are not of the same type\n");} }
            | expression MULTIPLY expression{if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Operands  are not of the same type\n");} }
+                                       semantic_error("Operands  are not of the same type\n");} }
            | expression DIVIDE expression{ 
                                              if(strcmp($3,"0")==0){
                                                
-                                            semantic_error("Semantic error: Can not be diveded by zero\n");}
+                                            semantic_error("Can not be diveded by zero\n");}
 
                                         else if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Operands  are not of the same type\n");} }
+                                       semantic_error("Operands  are not of the same type\n");} }
            | expression MODULO expression {if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+                                       semantic_error("comparation with differnt type is impossible\n");} }
            | expression LESS_THAN expression{if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+                                       semantic_error("comparation with differnt type is impossible\n");} }
            | expression LESS_EQUAL expression{if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+                                       semantic_error("comparation with differnt type is impossible\n");} }
            | expression GREATER_THAN expression{if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+                                       semantic_error("comparation with differnt type is impossible\n");} }
            | expression GREATER_EQUAL expression{if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+                                       semantic_error("comparation with differnt type is impossible\n");} }
            | expression EQUALS expression{if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+                                       semantic_error("comparation with differnt type is impossible\n");} }
            | expression NOT_EQUALS expression{if(!analyzePlusExpression($1,$3)){
-                                       semantic_error("Semantic error: Ocomparation with differnt type is impossible\n");} }
+                                       semantic_error("comparation with differnt type is impossible\n");} }
            | expression AND expression
            | expression OR expression
            | NOT expression
@@ -560,7 +653,7 @@ primary_expression : IDENTIFIER {
 
                       } 
                                            } 
-                    | FLOAT_CONST
+                    | FLOAT_CONST 
                     | INT_CONST
                     | STRING_CONST
                     | CHAR_CONST

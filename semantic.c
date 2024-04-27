@@ -70,11 +70,11 @@ bool analyzePlusExpression(char* leftOperand, char* rightOperand) {
         printf("Semantic error: Operands '%s' and '%s' are not numbers\n", leftOperand, rightOperand);
         return false;
     }
-
-    // Perform other semantic analysis specific to addition operation if needed
+  // Perform other semantic analysis specific to addition operation if needed
 
     return true;
 }
+
 
 void addAssignmentValue(char* identifier, char* value) {
 
@@ -105,4 +105,24 @@ bool check_same_or_not_type_For_ids(char *id1,char *id2){
         }
     }
    
+ }
+ bool check_function_redeclaration(char* func_name){
+     for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(func_name, symbol_table[i].name) ==0) {
+            if(symbol_table[i].is_function)
+            return true;
+        break;
+        }
+    }
+return false;
+ }
+  bool check_class_redeclaration(char* class_name){
+     for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(class_name, symbol_table[i].name) ==0) {
+            if(strcmp(symbol_table[i].data_type,"class")==0)
+            return true;
+        break;
+        }
+    }
+return false;
  }
