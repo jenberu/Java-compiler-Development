@@ -9,7 +9,7 @@
 
 
 extern int symbol_count;
-
+extern int parm_count;
 extern int line_number;
 extern int yylex();
 extern FILE *yyin;
@@ -34,7 +34,7 @@ typedef struct {
     int intval;
     char charval;
 }
-%type <strval> type_specifier expression primary_expression var_declarations  
+%type <strval> type_specifier expression primary_expression var_declarations parm_type_specifier
 %token <strval> IDENTIFIER STRING_CONST VOID FLOAT_CONST CHAR_CONST INT_CONST
 
 %token <strval> MAIN  CLASS STATIC PRINTLN DOUBLE NEW CHAR IMPORT BREAK FOR RETURN DO WHILE IF ELSE SWITCH PRIVATE PROTECTED PUBLIC IMPLEMENTS THIS
@@ -52,8 +52,10 @@ typedef struct {
 %right NOT
 
 %%
-start:program 
-    |import_statment start
+start:program {if(!check_main_mathed()){printf(" can not find main method\n"); exit(EXIT_FAILURE);
+}}
+    |import_statment start {if(!check_main_mathed()){printf(" can not find main method\n"); exit(EXIT_FAILURE);
+}}
     |import_statment 
      ;
 import_statment:IMPORT JAVA_IMPORT 
@@ -104,7 +106,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
 
                              } 
                                        
-                }  LBRACE{ scope_id++;} class_body RBRACE 
+                }  LBRACE{ scope_id++;} class_body RBRACE { scope_id++;}
                   | CLASS IDENTIFIER {
                                           char* identifier=$2;
                                       char *data_type = get_data_type($2);
@@ -133,7 +135,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
                   semantic_error(" unknown class ,the extended class is not defiend\n");
 
                              } 
-                }LBRACE { scope_id++;} class_body RBRACE
+                }LBRACE { scope_id++;} class_body RBRACE { scope_id++;}
                  | CLASS IDENTIFIER LBRACE { scope_id++;
                                     char* identifier=$2;
                              char *data_type = get_data_type($2);
@@ -149,7 +151,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
                            add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                              }  
-                }class_body RBRACE
+                }class_body RBRACE { scope_id++;}
                 | PUBLIC CLASS IDENTIFIER {char *identifier=$3;
                                         char *data_type = get_data_type($3);
                                         int result =strcmp(data_type,"UNKNOWN");
@@ -165,7 +167,7 @@ class_declaration: PUBLIC CLASS IDENTIFIER {
 
                              } 
                 }
- LBRACE { scope_id++;} class_body RBRACE
+ LBRACE { scope_id++;} class_body RBRACE { scope_id++; }
                  ;
 
 class_body:statement_list 
@@ -181,12 +183,12 @@ class_body:statement_list
 
 function_decl:modifier static_func type_specifier  IDENTIFIER { char* identifier=$4;
                                  if(check_function_redeclaration(identifier)){
-                                semantic_error("the function is already defined ,function the with same name not allowod in java\n");
+                                semantic_error("the function is already defined ,function the with same name in one class not allowod in java\n");
 
                                    }
                               int token = search_symbol_table(identifier);
                              if (token == -1) {
-                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,true);
 
                              } 
                          set_is_function_attribute($4);} LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE   {pop_scope();
@@ -194,42 +196,42 @@ function_decl:modifier static_func type_specifier  IDENTIFIER { char* identifier
                              } 
              |static_func type_specifier IDENTIFIER { char* identifier=$3;
                 if(check_function_redeclaration(identifier)){
-                                semantic_error(" the function is already defined ,function the with same name not allowod in java\n");
+                 semantic_error(" the function is already defined ,function the with same name in one class not allowod in java\n");
 
                                    }
-                              int token = search_symbol_table(identifier);
-                             if (token == -1) {
-                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                             // int token = search_symbol_table(identifier);
+                             //if (token == -1) {
+                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,true);
 
-                             } 
+                          //   } 
         set_is_function_attribute($3);} LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE  {pop_scope();
                
     }  
              |static_func VOID IDENTIFIER{ char* identifier=$3;
                                    if(check_function_redeclaration(identifier)){
-                                semantic_error("the function is already defined ,function the with same name not allowod in java\n");
+                                semantic_error("the function is already defined ,function the with same name in one class not allowod in java\n");
 
                                    }
                                 strcpy(symbol_table[symbol_count].data_type, "void");
             
-                              int token = search_symbol_table(identifier);
-                             if (token == -1) {
-                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                             // int token = search_symbol_table(identifier);
+                            // if (token == -1) {
+                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,true);
 
-                             } 
+                            // } 
                          set_is_function_attribute($3);} LPAREN parm RPAREN LBRACE {scope_id++; push_scope("local");}  func_body RBRACE {  pop_scope();
                                   }
              |modifier static_func VOID  IDENTIFIER {char* identifier=$4;
                                 if(check_function_redeclaration(identifier)){
-                                semantic_error("the function is already defined ,function the with same name not allowod in java\n");
+                                semantic_error("the function is already defined ,function the with same name in one clss not allowod in java\n");
 
                                    }
                                 strcpy(symbol_table[symbol_count].data_type, "void");
-                              int token = search_symbol_table(identifier);
-                             if (token == -1) {
-                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                             // int token = search_symbol_table(identifier);
+                             //if (token == -1) {
+                           add_to_symbol_table(identifier, IDENTIFIER, line_number ,true);
 
-                             } 
+                           //  } 
                       set_is_function_attribute($4);} LPAREN parm RPAREN LBRACE { scope_id++; push_scope("local");}  func_body RBRACE {pop_scope();
                                 }
 
@@ -238,17 +240,31 @@ static_func:  STATIC
               |
               ;
 main_method : PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET IDENTIFIER {
-  strcpy(symbol_table[symbol_count].data_type, "String");add_to_symbol_table($9, IDENTIFIER, line_number ,false);
+  if(check_main_mathed()){printf(" more than one  main method is not allowed\n"); exit(EXIT_FAILURE);
+}
+  strcpy(symbol_table[symbol_count].data_type, "void");add_to_symbol_table("main", IDENTIFIER, line_number ,true);  
 } RPAREN LBRACE  { scope_id++; push_scope("local"); } func_body RBRACE{pop_scope();}
   ;
-parm: type_specifier IDENTIFIER
-      |parm COMMA type_specifier IDENTIFIER
+parm: parm_type_specifier IDENTIFIER{  add_parm1_for_function($2);}
+      |parm_type_specifier IDENTIFIER  COMMA parm_type_specifier IDENTIFIER {add_parm1_for_function($2); add_parm1_for_function($5);}
+      | parm_type_specifier IDENTIFIER COMMA parm_type_specifier IDENTIFIER COMMA parm_type_specifier IDENTIFIER { add_parm1_for_function($2); add_parm1_for_function($5);add_parm1_for_function($8);}
+      | parm COMMA  parm_type_specifier IDENTIFIER
       |
       ;
-
+parm_type_specifier : INT{strcpy(fun_parm[parm_count].parm_type, "int");} 
+               | FLOAT {strcpy(fun_parm[parm_count].parm_type, "float");} 
+               | STRING{strcpy(fun_parm[parm_count].parm_type, "String");} 
+                
+               |CHAR  {strcpy(fun_parm[parm_count].parm_type, "char");} 
+                 |DOUBLE {strcpy(fun_parm[parm_count].parm_type, "double");} 
+              ;
 func_body: statement_list
            |
            ;
+/* func_body_type:statement_list RETURN primary_expression SEMICOLON 
+  
+              |      
+           ; */
 modifier: PUBLIC  
          |PRIVATE 
          |PROTECTED
@@ -257,6 +273,11 @@ modifier: PUBLIC
          ; 
 assignment : IDENTIFIER ASSIGN IDENTIFIER {  char* identifier =$1;
                                           char* identifier1 =$3;
+
+                          if(!check_value_of_id($3)){
+                         printf("identifier %s has not intialized",$3);
+                         exit(EXIT_FAILURE);
+                       } 
 
                         
                                         char *data_type1 = get_data_type($1);
@@ -374,11 +395,15 @@ statement :expression SEMICOLON
           |switch_statement
           |array_declaration SEMICOLON
           |array_intialization
-          |IDENTIFIER ASSIGN expression SEMICOLON
+          |IDENTIFIER ASSIGN expression SEMICOLON {
+                            
+                                 if(!analyzePlusExpression($1,$3)){
+                                      exit(EXIT_FAILURE);
+                                      } }
           |type_specifier IDENTIFIER ASSIGN expression SEMICOLON{ char* identifier =$2;
-
+                          
                       if (!analyze_variable_declaration(identifier)) {
-                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          printf(" Error: Identifier  '%s'is already declared \n", identifier);
                           semantic_error("Identifier with same scope can not be redclare");
                           
                       }
@@ -387,7 +412,9 @@ statement :expression SEMICOLON
                         add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                       } 
-                                          
+                        if(!analyzePlusExpression($2,$4)){
+                                      exit(EXIT_FAILURE);
+                                      }                    
                      } 
           ;
 array_declaration : type_specifier IDENTIFIER LBRACKET RBRACKET  // Array declaration without size
@@ -435,24 +462,29 @@ object_creation: IDENTIFIER IDENTIFIER ASSIGN NEW IDENTIFIER  LPAREN parametr RP
                                         }
                                                                 ;
 parametr:expression
-         |primary_expression
-         |primary_expression COMMA expression
-         |SYSTEM DOT IN
-         |
+        |parametr COMMA parametr
+        |SYSTEM DOT IN
+        |
                 ;
 fuction_call: IDENTIFIER DOT  IDENTIFIER  
-           {   char *data_type = get_data_type($3);
+          LPAREN parametr RPAREN SEMICOLON {char *data_type = get_data_type($3);
                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
                         strcpy(symbol_table[symbol_count].data_type, " func call");
-                                            }
-            } LPAREN parametr RPAREN SEMICOLON 
+                                            }if(!check_parmconstant_type_For_int($1)){semantic_error("called function have not argument\n");}}
+            |IDENTIFIER DOT  IDENTIFIER LPAREN INT_CONST RPAREN SEMICOLON{if(!check_parmconstant_type_For_int($3)){semantic_error("type mismach in function call\n");}}
+            |IDENTIFIER DOT  IDENTIFIER LPAREN STRING_CONST RPAREN SEMICOLON {if(!check_parmconstant_type_For_string($3)){semantic_error("type mismach in function call\n");}}
+
             |IDENTIFIER LPAREN parametr RPAREN SEMICOLON  {   char *data_type = get_data_type($1);
                         int result =strcmp(data_type,"UNKNOWN");
                                        if (result==0) {
                         strcpy(symbol_table[symbol_count].data_type, " func call");
                                             }
             }
+            |IDENTIFIER LPAREN STRING_CONST RPAREN SEMICOLON {if(!check_parmconstant_type_For_string($1)){semantic_error("type mismach in function call\n");}}
+            |IDENTIFIER LPAREN INT_CONST RPAREN SEMICOLON {if(!check_parmconstant_type_For_int($1)){semantic_error("type mismach in function call\n");}}
+            |IDENTIFIER LPAREN  RPAREN SEMICOLON  {if(!check_parmconstant_type_For_int($1)){semantic_error("called function have not argument\n");}}
+            |IDENTIFIER LPAREN FLOAT_CONST RPAREN SEMICOLON  {if(!check_parmconstant_type_For_float($1)){semantic_error("type mismach in function call it not float type\n");}}
            ;
 declaration : type_specifier  var_declarations 
                      
@@ -470,7 +502,7 @@ var_declarations : var_declaration
 var_declaration :  IDENTIFIER  { char* identifier =$1;
 
                       if (!analyze_variable_declaration(identifier)) {
-                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          printf(" Error: Identifier  '%s'is already declared \n", identifier);
                           semantic_error("Identifier with same scope can not be redclare");
                           
                       }
@@ -484,7 +516,10 @@ var_declaration :  IDENTIFIER  { char* identifier =$1;
                      |IDENTIFIER ASSIGN IDENTIFIER  { char* identifier =$1;
                                                      char* identifier1 =$3;
 
-
+                       if(!check_value_of_id(identifier1)){
+                         printf("identifier %s has not intialized",identifier1);
+                         exit(EXIT_FAILURE);
+                       }
                       if (!analyze_variable_declaration(identifier)) {
                           printf("Error: Identifier  '%s'is already declared \n", identifier);
                           semantic_error("Identifier with same scope can not be redclare");
@@ -518,6 +553,11 @@ var_declaration :  IDENTIFIER  { char* identifier =$1;
                      } 
                      |IDENTIFIER ASSIGN INT_CONST {
                                     char* identifier =$1;
+                                     if (!analyze_variable_declaration(identifier)) {
+                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          semantic_error("Identifier with same scope can not be redclare");
+                          
+                      }
                                      add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                                       if(!check_constant_type_For_int($1)){
@@ -530,10 +570,15 @@ var_declaration :  IDENTIFIER  { char* identifier =$1;
                                                  }
                     |IDENTIFIER ASSIGN STRING_CONST{
                       char* identifier =$1;
-                                              add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
+                       if (!analyze_variable_declaration(identifier)) {
+                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          semantic_error("Identifier with same scope can not be redclare");
+                          
+                      }
+                     add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
-                                     if(!check_constant_type_For_String($1)){
-                                          printf("Error: Identifier '%s' is not String type.\n", $1);
+                      if(!check_constant_type_For_String($1)){
+                       printf("Error: Identifier '%s' is not String type.\n", $1);
 
                                                 
                                                semantic_error("type incpatable Identifier is not String type\n");
@@ -542,6 +587,11 @@ var_declaration :  IDENTIFIER  { char* identifier =$1;
                                                  addAssignmentValue($1,$3);}       
                    |IDENTIFIER ASSIGN FLOAT_CONST{ 
                     char* identifier =$1;
+                     if (!analyze_variable_declaration(identifier)) {
+                          printf("Error: Identifier  '%s'is already declared \n", identifier);
+                          semantic_error("Identifier with same scope can not be redclare");
+                          
+                      }
                                       add_to_symbol_table(identifier, IDENTIFIER, line_number ,false);
 
                                      if(!check_constant_type_For_Float($1)){
@@ -693,6 +743,7 @@ int main(int argc, char *argv[]) {
     fclose(input_file);
    
  displaySymbolTable();
+ 
     return 0;
 }
 

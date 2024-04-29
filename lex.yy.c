@@ -303,9 +303,9 @@ static yyconst short int yy_accept[198] =
        55,   58,   58,   58,   13,   58,   58,   58,   58,   58,
         1,   58,   58,   58,   58,   58,   58,   58,   23,   54,
        58,   58,   58,    7,    2,   58,   58,   58,   53,   58,
-       58,    3,   58,   58,   58,   58,   58,   58,   58,   11,
-       57,   20,   58,   56,   58,   58,    6,    3,   58,   58,
-       58,   18,    9,    4,   14,   15,    5,   58,   21,   16,
+       58,    4,   58,   58,   58,   58,   58,   58,   58,   11,
+       57,   20,   58,   56,   58,   58,    6,    4,   58,   58,
+       58,   18,    9,    5,   14,   15,    3,   58,   21,   16,
        58,   58,   58,   58,   17,   19,    0
 
     } ;
@@ -490,23 +490,12 @@ char *yytext;
 #line 1 "javacompiler.l"
 #define INITIAL 0
 #line 2 "javacompiler.l"
-#include "y.tab.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "y.tab.h"
+#include "symbol_table.h"
 int line_number = 1;
-
- 
-struct symbol_entry {
-    char name[50];
-    char data_type[20];
-     int token_type;
-     int location;
-};
-
-// Symbol table declaration
-struct symbol_entry symbol_table[100];
-int symbol_count = 0; // Counter to track the number of entries in symbol table
-
-// Function to search for an identifier in the symbol table
 char* token_strings[] = {
     "IDENTIFIER", "STRING_CONST", "FLOAT_CONST", "INT_CONST", "CHAR_CONST", 
     "CLASS", "STATIC", "IMPORT", "BREAK", "FOR", "RETURN", "DO", "WHILE", "IF", "ELSE",
@@ -516,51 +505,8 @@ char* token_strings[] = {
     "EQUALS", "NOT_EQUALS", "AND", "OR", "NOT", "INT", "FLOAT", "VOID", "STRING"
     
 };
-int search_symbol_table(char *name) {
-    for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(symbol_table[i].name, name) == 0)
-            return symbol_table[i].token_type; // Return token if found
-    }
-    return -1; // Return -1 if not found
-}
-
-
-// Function to add an entry to the symbol table
-void add_to_symbol_table(char *name, int token,int location) {
-    strcpy(symbol_table[symbol_count].name, name);
-    symbol_table[symbol_count].token_type = token;
-    symbol_table[symbol_count].location = location;
-    symbol_count++;
-}
-void displaySymbolTable() {
-    
-    printf("Symbol Table:\n");
-    printf("------------------------------------------------\n");
-     printf("%-20s | %-15s | %-10s | %-10s\n", "Token Name", "Data Type", "line number" ,"Token Type");
-     printf("---------------------------------------------------------\n");
-    for (int i = 0; i < symbol_count; i++) {                    
-        printf("%-20s | %-15s | %-10d |%-10s\n", symbol_table[i].name, symbol_table[i].data_type,  symbol_table[i].location,token_strings[0]);
-
-    }
-    printf("------------------------------------------------\n");
-}
-// Function to search for an identifier in the symbol table and return its token name
-char* get_data_type(char* token_name) {
-    for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(symbol_table[i].name, token_name) == 0) {
-            if (strlen(symbol_table[i].data_type) > 0) {
-                return symbol_table[i].data_type;
-            } else {
-                return "UNKNOWN"; // Or return NULL or an empty string
-            }
-        }
-    }
-    return "UNKNOWN"; // Return if token name is not found in symbol table
-}
-
-
-
-#line 564 "lex.yy.c"
+/* Define token types */
+#line 510 "lex.yy.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -711,9 +657,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 74 "javacompiler.l"
+#line 22 "javacompiler.l"
 
-#line 717 "lex.yy.c"
+
+
+#line 665 "lex.yy.c"
 
 	if ( yy_init )
 		{
@@ -798,350 +746,353 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 75 "javacompiler.l"
+#line 25 "javacompiler.l"
 { return MAIN; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 76 "javacompiler.l"
+#line 26 "javacompiler.l"
 { return CLASS; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 77 "javacompiler.l"
-{return JAVA_IMPORT ; }
+#line 27 "javacompiler.l"
+{ return EXTENDS; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 78 "javacompiler.l"
-{ return STATIC; }
+#line 28 "javacompiler.l"
+{ return JAVA_IMPORT; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 79 "javacompiler.l"
-{ return EXTENDS; }
+#line 29 "javacompiler.l"
+{return STATIC; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 80 "javacompiler.l"
+#line 30 "javacompiler.l"
 { return IMPORT; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 81 "javacompiler.l"
+#line 31 "javacompiler.l"
 { return BREAK; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 82 "javacompiler.l"
+#line 32 "javacompiler.l"
 { return FOR; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 83 "javacompiler.l"
+#line 33 "javacompiler.l"
 { return RETURN; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 84 "javacompiler.l"
+#line 34 "javacompiler.l"
 { return DO; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 85 "javacompiler.l"
+#line 35 "javacompiler.l"
 { return WHILE; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 86 "javacompiler.l"
+#line 36 "javacompiler.l"
 { return IF; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 87 "javacompiler.l"
+#line 37 "javacompiler.l"
 { return ELSE; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 88 "javacompiler.l"
+#line 38 "javacompiler.l"
 { return SWITCH; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 89 "javacompiler.l"
-{return DEFAULT;}
+#line 39 "javacompiler.l"
+{ return DEFAULT; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 90 "javacompiler.l"
+#line 40 "javacompiler.l"
 { return PRIVATE; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 91 "javacompiler.l"
+#line 41 "javacompiler.l"
 { return PROTECTED; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 92 "javacompiler.l"
+#line 42 "javacompiler.l"
 { return PUBLIC; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 93 "javacompiler.l"
+#line 43 "javacompiler.l"
 { return IMPLEMENTS; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 94 "javacompiler.l"
-{return SYSTEM; }
+#line 44 "javacompiler.l"
+{ return SYSTEM; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 95 "javacompiler.l"
-{return PRINTLN;}
+#line 45 "javacompiler.l"
+{ return PRINTLN; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 96 "javacompiler.l"
-{return OUT;}
+#line 46 "javacompiler.l"
+{ return OUT; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 97 "javacompiler.l"
-{return THIS;}
+#line 47 "javacompiler.l"
+{ return THIS; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 98 "javacompiler.l"
-{return NEW;}
+#line 48 "javacompiler.l"
+{ return NEW; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 99 "javacompiler.l"
-{return CASE;}
+#line 49 "javacompiler.l"
+{ return CASE; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 100 "javacompiler.l"
+#line 50 "javacompiler.l"
 { return SEMICOLON; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 101 "javacompiler.l"
+#line 51 "javacompiler.l"
 { return COMMA; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 102 "javacompiler.l"
+#line 52 "javacompiler.l"
 { return ASSIGN; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 103 "javacompiler.l"
+#line 53 "javacompiler.l"
 { return MINUS; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 104 "javacompiler.l"
+#line 54 "javacompiler.l"
 { return PLUS; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 105 "javacompiler.l"
+#line 55 "javacompiler.l"
 { return MULTIPLY; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 106 "javacompiler.l"
+#line 56 "javacompiler.l"
 { return DIVIDE; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 107 "javacompiler.l"
+#line 57 "javacompiler.l"
 { return MODULO; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 108 "javacompiler.l"
+#line 58 "javacompiler.l"
 { return DOT; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 109 "javacompiler.l"
+#line 59 "javacompiler.l"
 { return LBRACKET; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 110 "javacompiler.l"
+#line 60 "javacompiler.l"
 { return RBRACKET; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 111 "javacompiler.l"
+#line 61 "javacompiler.l"
 { return LPAREN; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 112 "javacompiler.l"
+#line 62 "javacompiler.l"
 { return RPAREN; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 113 "javacompiler.l"
+#line 63 "javacompiler.l"
 { return LBRACE; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 114 "javacompiler.l"
-{ return RBRACE; }
+#line 64 "javacompiler.l"
+{return RBRACE; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 115 "javacompiler.l"
+#line 65 "javacompiler.l"
 { return LESS_THAN; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 116 "javacompiler.l"
+#line 66 "javacompiler.l"
 { return LESS_EQUAL; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 117 "javacompiler.l"
+#line 67 "javacompiler.l"
 { return GREATER_THAN; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 118 "javacompiler.l"
+#line 68 "javacompiler.l"
 { return GREATER_EQUAL; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 119 "javacompiler.l"
+#line 69 "javacompiler.l"
 { return EQUALS; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 120 "javacompiler.l"
+#line 70 "javacompiler.l"
 { return NOT_EQUALS; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 121 "javacompiler.l"
+#line 71 "javacompiler.l"
 { return AND; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 122 "javacompiler.l"
+#line 72 "javacompiler.l"
 { return OR; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 123 "javacompiler.l"
+#line 73 "javacompiler.l"
 { return NOT; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 124 "javacompiler.l"
+#line 74 "javacompiler.l"
 { return COLON; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 125 "javacompiler.l"
-{ return IN;}
+#line 75 "javacompiler.l"
+{ return IN; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 126 "javacompiler.l"
-{ yylval.strval=strdup(yytext); return INT; }
+#line 76 "javacompiler.l"
+{ return INT; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 127 "javacompiler.l"
-{ yylval.strval=strdup(yytext); return FLOAT; }
+#line 77 "javacompiler.l"
+{ return FLOAT; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 128 "javacompiler.l"
-{ yylval.strval=strdup(yytext);  return VOID; }
+#line 78 "javacompiler.l"
+{ //yylval.strval = strdup(yytext);
+//                        strcpy(symbol_table[symbol_count].data_type, "keyword");
+//                         add_to_symbol_table(yytext, KEYWORD, line_number ,false);
+                          return VOID; 
+}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 129 "javacompiler.l"
-{ yylval.strval=strdup(yytext);  return CHAR; }
+#line 83 "javacompiler.l"
+{ return CHAR; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 130 "javacompiler.l"
-{yylval.strval=strdup(yytext);   return DOUBLE; }
+#line 84 "javacompiler.l"
+{ return DOUBLE; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 131 "javacompiler.l"
-{ yylval.strval=strdup(yytext);  return STRING; }
+#line 85 "javacompiler.l"
+{ 
+                        return STRING; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 132 "javacompiler.l"
-{ yylval.strval = strdup(yytext); 
-                        int index = search_symbol_table(yytext);
-                         if (index == -1) {
-                        add_to_symbol_table(yytext, IDENTIFIER, line_number);
-                       return IDENTIFIER; // Return IDENTIFIER token
+#line 87 "javacompiler.l"
+{
+                            yylval.strval = strdup(yytext);
+                            int index = search_symbol_table(yytext);
+                            if (index == -1) {
+                                return IDENTIFIER;
+                            } else {
+                                return index;
+                            }
                         }
-                     else {
-                        return index; // Return type of the identifier
-                        }
-                       
-                         }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 144 "javacompiler.l"
-;
+#line 97 "javacompiler.l"
+; /* Single-line comment */
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 145 "javacompiler.l"
-;
+#line 98 "javacompiler.l"
+; /* Multi-line comment */
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 146 "javacompiler.l"
-{ yylval.floatval = atof(yytext); return FLOAT_CONST; }
+#line 99 "javacompiler.l"
+{ yylval.strval = strdup(yytext); return FLOAT_CONST; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 147 "javacompiler.l"
-{ yylval.intval = atoi(yytext); return INT_CONST; }
+#line 100 "javacompiler.l"
+{ yylval.strval = strdup(yytext); return INT_CONST; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 148 "javacompiler.l"
+#line 101 "javacompiler.l"
 { yylval.strval = strdup(yytext); return STRING_CONST; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 149 "javacompiler.l"
-{ yylval.charval = yytext[1]; return CHAR_CONST; }
+#line 102 "javacompiler.l"
+{ yylval.strval = strdup(yytext);  return CHAR_CONST; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 150 "javacompiler.l"
-; // skip whitespace
+#line 103 "javacompiler.l"
+; /* Skip whitespace */
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 151 "javacompiler.l"
-{ line_number++;  }
+#line 104 "javacompiler.l"
+{ line_number++; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 153 "javacompiler.l"
+#line 106 "javacompiler.l"
 ECHO;
 	YY_BREAK
-#line 1145 "lex.yy.c"
+#line 1096 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2027,14 +1978,9 @@ int main()
 	return 0;
 	}
 #endif
-#line 153 "javacompiler.l"
+#line 106 "javacompiler.l"
 
 
 int yywrap() {
-     
-     
-
     return 1; // Indicate that there are no more input files to process
 }
-
-

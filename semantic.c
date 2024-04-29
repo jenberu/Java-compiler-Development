@@ -8,6 +8,7 @@ extern int line_number;
 
 
 
+
 bool analyzePlusExpression(char* leftOperand, char* rightOperand) {
     // Ensure that both operands are declared identifiers
     bool leftOperandFound = false;
@@ -99,16 +100,26 @@ bool check_same_or_not_type_For_ids(char *id1,char *id2){
 }
  void getValueOfid(char * identfier1,char* identfier2){
      for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(identfier2, symbol_table[i].name) ==0) {
+         if (strcmp(identfier2, symbol_table[i].name) ==0 &&strcmp("local", symbol_table[i].scope) ==0  ) {
            addAssignmentValue(identfier1,symbol_table[i].value);
             break;
         }
-    }
-   
+        else {  for (int j = 0; j < symbol_count; j++) 
+        {
+            if (strcmp(identfier2, symbol_table[j].name) ==0) {
+           addAssignmentValue(identfier1,symbol_table[j].value);
+            break;
+        }
+        }
+        }
+     }
  }
  bool check_function_redeclaration(char* func_name){
+     
      for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(func_name, symbol_table[i].name) ==0) {
+        if (strcmp(func_name, symbol_table[i].name) ==0 && symbol_table[i].scope_id ==scope_id-1) {
+          
+
             if(symbol_table[i].is_function)
             return true;
         break;
@@ -126,3 +137,24 @@ return false;
     }
 return false;
  }
+ bool check_main_mathed(){
+     for (int i = 0; i < symbol_count; i++) {
+        if (strcmp("main" ,symbol_table[i].name) ==0) {
+            return true;
+        break;
+        }
+    }
+    return false;
+ }
+bool check_value_of_id(char * identifier){
+      for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(identifier ,symbol_table[i].name) ==0) {
+            if(strlen(symbol_table[i].value) > 0 ){
+            return true;
+            }
+        break;
+        }
+   
+    }
+    return false;
+}
